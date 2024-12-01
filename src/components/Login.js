@@ -8,28 +8,24 @@ import TodoList from "./TodoList";
 import {Link} from "react-router";
 import {useNavigate} from 'react-router-dom';
 
-export default function Signup() {
+export default function Login() {
     const emailRef = useRef();
     const passwordRef = useRef();
-    const passwordConfirmationRef = useRef();
-    const {signup} = useAuthContext();
+    const {login} = useAuthContext();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
-        if (passwordRef.current.value !== passwordConfirmationRef.current.value) {
-            return setError('Passwords do not match~')
-        }
 
         try {
             setError('')
             setLoading(true)
-            await signup(emailRef.current.value, passwordRef.current.value);
+            await login(emailRef.current.value, passwordRef.current.value);
             navigate('/');
         } catch {
-            setError('Failed to create an account')
+            setError('Failed to login')
         }
         setLoading(false)
     }
@@ -83,7 +79,7 @@ export default function Signup() {
                     <TodoList token={token}/>
                     <div className="w-100 text-center mt-3">
                         <Button onClick={logout} className="w-100">
-                            Log Out
+                            Log In
                         </Button>
                     </div>
                 </>
@@ -104,18 +100,13 @@ export default function Signup() {
                                         <Form.Control type="password" placeholder="Enter Password" ref={passwordRef}
                                                       required/>
                                     </Form.Group>
-                                    <Form.Group id="password_confirmation">
-                                        <Form.Label>Re-Enter Password</Form.Label>
-                                        <Form.Control type="password" placeholder="Re-Enter Password"
-                                                      ref={passwordConfirmationRef} required/>
-                                    </Form.Group>
-                                    <Button disabled={loading} className="w-100" type="submit">Sign Up</Button>
+                                    <Button disabled={loading} className="w-100" type="submit">Log In</Button>
                                 </Form>
                             </Card.Body>
                         </Card>
 
                         <div className="w-100 text-center mt-2">
-                            Already have an account? <Link to="/login">Log In</Link>
+                            Do not have an account? <Link to="/signup">Sign Up</Link>
                         </div>
 
                         <div className="w-100 text-center mt-3">
