@@ -36,7 +36,7 @@ export default function Signup() {
 
             <div className="w-100 text-center mt-3">
                 <GoogleLoginButton
-                    onClick={() => console.log("Google login clicked!")}
+                    onClick={() => console.log(`Google login clicked!`)}
                     style={{ width: "100%" }}
                 />
             </div>
