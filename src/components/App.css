@@ -1,0 +1,123 @@
+/* Basic Reset and Body Styling */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* App Container */
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #e9ecef;
+}
+
+/* Max Width for Signup Form */
+.w-100 {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Signup Form Styling */
+.form-group {
+  display: block;
+  margin-bottom: 20px; /* Decrease margin between fields, increase if more space is needed */
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px; /* Space between the label and the input field */
+}
+
+input,
+button {
+  width: 100%;
+  padding: 12px; /* Increased padding for the form fields */
+  margin-top: 5px; /* Reduced margin to make fields closer */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+input[type="email"],
+input[type="password"] {
+  background-color: #fff;
+  color: #333;
+}
+
+/* Button Styling */
+button {
+  background-color: #4285F4;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  border: none;
+  margin-top: 15px; /* Some space above the button */
+}
+
+button:hover {
+  background-color: #357ae8;
+  transform: scale(1.05);
+}
+
+/* Google Login Button Styling */
+.google-login-btn {
+  background-color: #4285F4;
+  color: white;
+  font-weight: bold;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px; /* Space between the submit and Google buttons */
+  transition: all 0.3s ease-in-out;
+}
+
+.google-login-btn:hover {
+  background-color: #357ae8;
+  transform: scale(1.05);
+}
+
+/* Center Align Signup Form */
+.d-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Customizing the Container's Padding */
+.container {
+  padding: 0 20px;
+  margin-top: 40px; /* Increase space above the entire form */
+}
+
+/* Sign Up Heading Styling */
+h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px; /* Less space between heading and form */
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .w-100 {
+    max-width: 100%;
+  }
+
+  input,
+  button {
+    padding: 15px;
+  }
+}
