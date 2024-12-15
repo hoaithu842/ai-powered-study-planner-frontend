@@ -18,13 +18,14 @@ export default function Dashboard() {
     // Function to fetch todos from the API
     const fetchData = async (token) => {
         try {
+            console.log(token)
             setLoading(true);
             const res = await axios.get(`${process.env.REACT_APP_API_URL}/todos`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },
             });
-
+            console.log(res.data)
             setTodos(res.data);
         } catch (error) {
             console.error('Error fetching todos:', error);
