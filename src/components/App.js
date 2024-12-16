@@ -8,13 +8,15 @@ import Login from "./Login";
 import Dashboard from "./Dashboard";
 import Profile from "./Profile";
 import Task from "./Task";
+import NavigationBar from './NavigationBar';
 
 function App() {
     return (
         <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-            <div className="w-100" style={{maxWidth: "400px"}}>
+            <div>
                 <Router>
                     <AuthProvider>
+                        <NavigationBar />
                         <Routes>
                             <Route path="/" element={<PrivateRoute/>}/>
                             <Route path="/signup" element={<Signup/>}/>

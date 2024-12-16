@@ -6,6 +6,8 @@
 }
 
 body {
+  width: 100%;
+  margin: 0;
   font-family: 'Arial', sans-serif;
   background-color: #f8f9fa;
   color: #333;
@@ -100,7 +102,6 @@ button:hover {
 /* Customizing the Container's Padding */
 .container {
   padding: 0 20px;
-  margin-top: 40px; /* Increase space above the entire form */
 }
 
 /* Sign Up Heading Styling */

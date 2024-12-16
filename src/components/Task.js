@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, Container, ListGroup, Alert, Modal, Form } from "react-bootstrap";
+import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge } from "react-bootstrap";
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
@@ -97,33 +98,88 @@ export default function Task() {
     }
 
     return (
-        <Container className="d-flex flex-column align-items-center" style={{ minHeight: "100vh", paddingTop: "20px" }}>
-            <h2 className="mb-4">Tasks</h2>
-            <Button variant="success" onClick={() => setShowModal(true)} className="mb-4">
-                Create New Task
-            </Button>
-            <Card style={{ width: "100%", maxWidth: "600px" }}>
-                <Card.Body>
-                    <ListGroup variant="flush">
-                        {tasks.map((task) => (
-                            <ListGroup.Item key={task._id} className="d-flex justify-content-between align-items-center">
+        <Container style={{ minHeight: '100vh' }} className="d-flex justify-content-center align-items-center mt-4">
+            <Row style={{padding: "20px"}}>
+                {tasks.map((task) => (
+                    <Col xs={12} sm={12} md={12} lg={12} key={task._id} className="mb-4 d-flex justify-content-center">
+                        <Card style={{ width: "30rem" }}>
+                            <Card.Body>
+                                <Card.Title>{task.title}</Card.Title>
+                                {/* <Card.Subtitle className="mb-2 text-muted">{task.estimated}</Card.Subtitle> */}
+                                {/*<Card.Text>{task.description}</Card.Text> */}
                                 <div>
-                                    <h5>{task.title}</h5>
-                                    <p className="mb-1 text-muted">Priority: {task.priority}</p>
-                                    <p className="mb-0">Status: {task.status}</p>
-                                </div>
-                                <Button
-                                    variant="primary"
-                                    onClick={() => navigate(`/tasks/${task._id}`)}
+                                <Badge
+                                    bg={
+                                    task.priority === 'High'
+                                        ? 'danger'
+                                        : task.priority === 'Medium'
+                                        ? 'warning'
+                                        : 'secondary'
+                                    }
+                                    className="me-2"
                                 >
-                                    View
-                                </Button>
-                            </ListGroup.Item>
-                        ))}
-                    </ListGroup>
-                </Card.Body>
-            </Card>
+                                    {task.priority}
+                                </Badge>
 
+                                <Badge
+                                    bg={
+                                    task.status === 'Todo'
+                                        ? 'warning' 
+                                        : task.status === 'In progress'
+                                        ? 'primary' 
+                                        : task.status === 'Done'
+                                        ? 'success' 
+                                        : 'secondary'
+                                    }
+                                >
+                                    {task.status}
+                                </Badge>
+                                </div>
+
+                                {/* Edit and Delete Buttons */}
+                                <div className="d-flex justify-content-end mt-3">
+                                    <Button
+                                        variant="outline-dark"
+                                        onClick={() => console.log(`Edit Task ${task._id}`)}
+                                        style={{
+
+                                            justifyContent: 'center', // Center the icon horizontally
+                                            alignItems: 'center', // Center the icon vertically
+                                            marginRight: '10px', // Space between the buttons
+                                          }}
+                                    >
+                                        <FaEdit />
+                                    </Button>
+                                    <Button
+                                        variant="outline-dark"
+                                        onClick={() => console.log(`Delete Task ${task._id}`)}
+                                        style={{ color: "red" }}
+                                    >
+                                        <FaTrashAlt />
+                                    </Button>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+
+            {/* Add Task Button */}
+            <Button
+                variant="success"
+                onClick={() => setShowModal(true)}
+                className="position-fixed"
+                style={{
+                    bottom: "20px",
+                    right: "20px",
+                    width: "120px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                + Add Task
+            </Button>
             {/* Modal for creating a new task */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
