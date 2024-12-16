@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge } from "react-bootstrap";
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
@@ -48,6 +50,13 @@ export default function Task() {
             ...newTask,
             [name]: value,
         });
+    };
+    const handleDateChange = (date) => {
+        setNewTask((prevState) => ({
+            ...prevState,
+            startDate: date,
+            endDate: date,
+        }));
     };
 
     // Handle task creation
@@ -200,13 +209,17 @@ export default function Task() {
                         <Form.Group controlId="taskPriority" className="mt-3">
                             <Form.Label>Priority</Form.Label>
                             <Form.Control
-                                type="text"
-                                placeholder="Enter task priority"
+                                as="select"
                                 name="priority"
                                 value={newTask.priority}
                                 onChange={handleChange}
-                            />
+                            >
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </Form.Control>
                         </Form.Group>
+
                         <Form.Group controlId="taskStatus" className="mt-3">
                             <Form.Label>Status</Form.Label>
                             <Form.Control
@@ -217,12 +230,33 @@ export default function Task() {
                                 onChange={handleChange}
                             />
                         </Form.Group>
+                        <Form.Group controlId="taskStartDate" className="mt-3">
+                            <Form.Label>Start Date & Time</Form.Label>
+                            <div className="d-block">
+                                <DatePicker
+                                    selected={newTask.startDate}
+                                    onChange={handleDateChange}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="form-control"
+                                />
+                            </div>
+                        </Form.Group>
+                        <Form.Group controlId="taskEndDate" className="mt-3">
+                            <Form.Label>End Date & Time</Form.Label>
+                            <div className="d-block">
+                                <DatePicker
+                                    selected={newTask.endDate}
+                                    onChange={handleDateChange}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="form-control"
+                                />
+                            </div>
+                        </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>
-                        Close
-                    </Button>
                     <Button variant="primary" onClick={handleCreateTask}>
                         Create Task
                     </Button>

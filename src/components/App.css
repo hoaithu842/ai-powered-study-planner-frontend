@@ -67,11 +67,6 @@ button {
   margin-top: 15px; /* Some space above the button */
 }
 
-button:hover {
-  background-color: #357ae8;
-  transform: scale(1.05);
-}
-
 /* Google Login Button Styling */
 .google-login-btn {
   background-color: #4285F4;
@@ -121,4 +116,15 @@ h2 {
   button {
     padding: 15px;
   }
+}
+
+.navbar {
+  width: 100%;
+}
+.nav-link {
+  color: #000;
+}
+
+.nav-link.active {
+  font-weight: bold;
 }

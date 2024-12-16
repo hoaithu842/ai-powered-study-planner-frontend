@@ -12,11 +12,11 @@ import NavigationBar from './NavigationBar';
 
 function App() {
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-            <div>
+        
                 <Router>
                     <AuthProvider>
                         <NavigationBar />
+                        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
                         <Routes>
                             <Route path="/" element={<PrivateRoute/>}/>
                             <Route path="/signup" element={<Signup/>}/>
@@ -24,10 +24,9 @@ function App() {
                             <Route path="/profile" element={<Profile/>}/>
                             <Route path="/tasks" element={<Task/>}/>
                         </Routes>
+                        </Container>
                     </AuthProvider>
                 </Router>
-            </div>
-        </Container>
     );
 }
 
