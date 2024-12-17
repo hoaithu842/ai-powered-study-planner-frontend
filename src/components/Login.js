@@ -30,6 +30,7 @@ export default function Login() {
             setLoading(true);
             await login(emailRef.current.value, passwordRef.current.value);
             // On successful login, navigate to the homepage
+
             // Get the token after login
             const user = await firebase.auth().currentUser;
             const token = await user.getIdToken();  // Get the Firebase token
@@ -56,6 +57,7 @@ export default function Login() {
                 //     navigate('/');
                 // }
             }
+            navigate('/');
         } catch {
             setError('Failed to login');
         }
