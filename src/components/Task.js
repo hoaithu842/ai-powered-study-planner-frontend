@@ -12,12 +12,21 @@ export default function Task() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [showModal, setShowModal] = useState(false); // Modal visibility state
+    const [showModal, setShowModal] = useState(false);
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setEditingTask(null);
+        setNewTask({ title: "", priority: "", status: "" });
+    }
     const [newTask, setNewTask] = useState({
         title: "",
         priority: "",
         status: "",
     });
+    const [editingTask, setEditingTask] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false); 
+    const [taskToDelete, setTaskToDelete] = useState(null);
+
     const navigate = useNavigate();
 
     // Fetch all tasks from the API
@@ -79,6 +88,58 @@ export default function Task() {
         }
     };
 
+    // Handle edit task
+    const handleEditTask = async () => {
+        try {
+            const response = await axios.put(
+                `${process.env.REACT_APP_API_URL}/tasks/${editingTask._id}`,
+                editingTask,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            
+            setTasks(tasks.map((task) => (task._id === editingTask._id ? response.data : task)));
+            setShowModal(false);
+            setEditingTask(null);
+        } catch (err) {
+            setError("Failed to edit task");
+        }
+    };
+    const openEditModal = (task) => {
+        setEditingTask(task); // Load existing task data
+        setShowModal(true);
+    };
+
+    // Handle delete task
+    const handleDeleteTask = async () => {
+        try {
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL}/tasks/${taskToDelete}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            setTasks(tasks.filter((task) => task._id !== taskToDelete));
+
+            setShowDeleteModal(false);
+            setTaskToDelete(null);
+        } catch (err) {
+            setError("Failed to delete task");
+        }
+    };
+    
+    const openDeleteModal = (taskId) => {
+        setTaskToDelete(taskId);
+        setShowDeleteModal(true);
+    };
+    
+
     // If loading, show a loading message
     if (loading) {
         return (
@@ -107,7 +168,7 @@ export default function Task() {
     }
 
     return (
-        <Container style={{ minHeight: '100vh' }} className="d-flex justify-content-center align-items-center mt-4">
+        <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
             <Row style={{padding: "20px"}}>
                 {tasks.map((task) => (
                     <Col xs={12} sm={12} md={12} lg={12} key={task._id} className="mb-4 d-flex justify-content-center">
@@ -146,25 +207,20 @@ export default function Task() {
                                 </div>
 
                                 {/* Edit and Delete Buttons */}
-                                <div className="d-flex justify-content-end mt-3">
+                                <div className="d-flex justify-content-end">
                                     <Button
                                         variant="outline-dark"
-                                        onClick={() => console.log(`Edit Task ${task._id}`)}
-                                        style={{
-
-                                            justifyContent: 'center', // Center the icon horizontally
-                                            alignItems: 'center', // Center the icon vertically
-                                            marginRight: '10px', // Space between the buttons
-                                          }}
+                                        onClick={() => openEditModal(task)}
+                                        className="border-0 me-2"
                                     >
-                                        <FaEdit />
+                                        <FaEdit className="icon-button"/>
                                     </Button>
                                     <Button
                                         variant="outline-dark"
-                                        onClick={() => console.log(`Delete Task ${task._id}`)}
-                                        style={{ color: "red" }}
+                                        onClick={() => openDeleteModal(task._id)}
+                                        className="border-0 text-danger"
                                     >
-                                        <FaTrashAlt />
+                                        <FaTrashAlt className="icon-button" />
                                     </Button>
                                 </div>
                             </Card.Body>
@@ -189,10 +245,10 @@ export default function Task() {
             >
                 + Add Task
             </Button>
-            {/* Modal for creating a new task */}
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
+            {/* Modal for creating a new / edit task */}
+            <Modal show={showModal} onHide={handleCloseModal} backdrop="static">
                 <Modal.Header closeButton>
-                    <Modal.Title>Create New Task</Modal.Title>
+                    <Modal.Title>{editingTask ? "Edit Task" : "Create New Task"}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -202,17 +258,26 @@ export default function Task() {
                                 type="text"
                                 placeholder="Enter task title"
                                 name="title"
-                                value={newTask.title}
-                                onChange={handleChange}
+                                value={editingTask ? editingTask.title : newTask.title}
+                                onChange={(e) =>
+                                    editingTask
+                                        ? setEditingTask({ ...editingTask, title: e.target.value })
+                                        : handleChange(e)
+                                }
                             />
                         </Form.Group>
+
                         <Form.Group controlId="taskPriority" className="mt-3">
                             <Form.Label>Priority</Form.Label>
                             <Form.Control
                                 as="select"
                                 name="priority"
-                                value={newTask.priority}
-                                onChange={handleChange}
+                                value={editingTask ? editingTask.priority : newTask.priority}
+                                onChange={(e) =>
+                                    editingTask
+                                        ? setEditingTask({ ...editingTask, priority: e.target.value })
+                                        : handleChange(e)
+                                }
                             >
                                 <option value="High">High</option>
                                 <option value="Medium">Medium</option>
@@ -226,28 +291,42 @@ export default function Task() {
                                 type="text"
                                 placeholder="Enter task status"
                                 name="status"
-                                value={newTask.status}
-                                onChange={handleChange}
+                                value={editingTask ? editingTask.status : newTask.status}
+                                onChange={(e) =>
+                                    editingTask
+                                        ? setEditingTask({ ...editingTask, status: e.target.value })
+                                        : handleChange(e)
+                                }
                             />
                         </Form.Group>
+
                         <Form.Group controlId="taskStartDate" className="mt-3">
                             <Form.Label>Start Date & Time</Form.Label>
                             <div className="d-block">
                                 <DatePicker
-                                    selected={newTask.startDate}
-                                    onChange={handleDateChange}
+                                    selected={editingTask ? editingTask.startDate : newTask.startDate}
+                                    onChange={(date) =>
+                                        editingTask
+                                            ? setEditingTask({ ...editingTask, startDate: date })
+                                            : handleDateChange(date)
+                                    }
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
                                 />
                             </div>
                         </Form.Group>
+
                         <Form.Group controlId="taskEndDate" className="mt-3">
                             <Form.Label>End Date & Time</Form.Label>
                             <div className="d-block">
                                 <DatePicker
-                                    selected={newTask.endDate}
-                                    onChange={handleDateChange}
+                                    selected={editingTask ? editingTask.endDate : newTask.endDate}
+                                    onChange={(date) =>
+                                        editingTask
+                                            ? setEditingTask({ ...editingTask, endDate: date })
+                                            : handleDateChange(date)
+                                    }
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
@@ -257,8 +336,25 @@ export default function Task() {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleCreateTask}>
-                        Create Task
+                    <Button
+                        variant="primary"
+                        onClick={editingTask ? handleEditTask : handleCreateTask}
+                    >
+                        {editingTask ? "Save Changes" : "Create Task"}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            {/* Modal for delete task */}
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="danger" onClick={handleDeleteTask}>
+                        Confirm Delete
                     </Button>
                 </Modal.Footer>
             </Modal>

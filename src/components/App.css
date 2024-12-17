@@ -40,8 +40,7 @@ label {
   margin-bottom: 5px; /* Space between the label and the input field */
 }
 
-input,
-button {
+input{
   width: 100%;
   padding: 12px; /* Increased padding for the form fields */
   margin-top: 5px; /* Reduced margin to make fields closer */
@@ -127,4 +126,10 @@ h2 {
 
 .nav-link.active {
   font-weight: bold;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
