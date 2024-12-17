@@ -9,6 +9,7 @@ import Dashboard from "./Dashboard";
 import Profile from "./Profile";
 import Task from "./Task";
 import NavigationBar from './NavigationBar';
+import Schedule from "./Schedule";
 
 function App() {
     return (
@@ -23,6 +24,7 @@ function App() {
                             <Route path="/login" element={<Login/>}/>
                             <Route path="/profile" element={<Profile/>}/>
                             <Route path="/tasks" element={<Task/>}/>
+                            <Route path="/schedule" element={<Schedule/>}/>
                         </Routes>
                         </Container>
                     </AuthProvider>
