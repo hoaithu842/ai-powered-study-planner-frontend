@@ -6,6 +6,7 @@ import {useNavigate} from "react-router-dom";
 import {Link} from "react-router";
 import firebase from "firebase/compat/app";
 import 'firebase/compat/auth';
+import axios from 'axios'; 
 
 export default function Signup() {
     const emailRef = useRef();
@@ -33,6 +34,28 @@ export default function Signup() {
             setError('');
             setLoading(true);
             await signup(emailRef.current.value, passwordRef.current.value);
+            const user = await firebase.auth().currentUser;
+            const token = await user.getIdToken();  // Get the Firebase token
+            // Call your API after the login is successful
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                headers: {
+                    Authorization: `Bearer ${token}`  // Include the token in the Authorization header
+                },
+            });
+            if (res.data && res.data) {
+                console.log(res.data);
+                // const userData = res.data.User;
+                // console.log('User data:', userData);
+                //
+                // // Check if 'should_update' is true
+                // if (userData.should_update) {
+                //     // If the user needs to update their profile, navigate to profile page
+                //     navigate('/profile');
+                // } else {
+                //     // If the user is all set, navigate to the homepage
+                //     navigate('/');
+                // }
+            }
             // Navigate to the home page after successful signup
             navigate('/');
         } catch {
