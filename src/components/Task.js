@@ -12,21 +12,22 @@ export default function Task() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [showModal, setShowModal] = useState(false);
-    const handleCloseModal = () => {
-        setShowModal(false);
-        setEditingTask(null);
-        setNewTask({ title: "", description: "", priority: "", status: "", startTime: "", endTime: "" });
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+
+    const handleCloseCreateModal = () => {
+        setShowCreateModal(false);
+        setNewTask({ title: "", description: "", priority: "", status: "", startTime: new Date(), endTime: new Date() });
     }
     const [newTask, setNewTask] = useState({
         title: "",
         description: "",
-        priority: "",
-        status: "",
-        startTime: "",
-        endTime: "",
+        priority: "Medium",
+        status: "Todo",
+        startTime: new Date(),
+        endTime: new Date(),
     });
-    const [editingTask, setEditingTask] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false); 
     const [taskToDelete, setTaskToDelete] = useState(null);
 
@@ -63,10 +64,15 @@ export default function Task() {
             [name]: value,
         });
     };
-    const handleDateChange = (date) => {
+    const handleStartDateChange = (date) => {
         setNewTask((prevState) => ({
             ...prevState,
             startTime: date,
+        }));
+    };
+    const handleEndDateChange = (date) => {
+        setNewTask((prevState) => ({
+            ...prevState,
             endTime: date,
         }));
     };
@@ -84,8 +90,8 @@ export default function Task() {
                 }
             );
             setTasks([...tasks, response.data]); // Add new task to the list
-            setShowModal(false); // Close modal
-            setNewTask({ title: "", description: "", priority: "", status: "", startTime: "", endTime: "" }); // Reset form
+            setShowCreateModal(false); // Close modal
+            setNewTask({ title: "", description: "", priority: "", status: "", startTime: new Date(), endTime: new Date() }); // Reset form
         } catch (err) {
             setError("Failed to create task");
         }
@@ -105,16 +111,23 @@ export default function Task() {
             );
             
             setTasks(tasks.map((task) => (task._id === editingTask._id ? response.data : task)));
-            setShowModal(false);
+            setShowEditModal(false);
             setEditingTask(null);
         } catch (err) {
             setError("Failed to edit task");
         }
     };
     const openEditModal = (task) => {
-        setEditingTask(task); // Load existing task data
-        setShowModal(true);
+        setEditingTask(task);
+        const startTime = new Date(task.startTime);
+        const endTime = new Date(task.endTime);
+        setEditingTask({ ...task, startTime: startTime, endTime: endTime });
+        setShowEditModal(true);
     };
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
+        setEditingTask(null);
+    };    
 
     // Handle delete task
     const handleDeleteTask = async () => {
@@ -143,23 +156,15 @@ export default function Task() {
     };
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-
-        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-        const weekday = weekdays[date.getDay()];
-        const day = date.getDate();
-        const month = date.getMonth();
-        const year = date.getFullYear();
-
-        let hours = date.getHours();
-        const minutes = date.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        const minutesFormatted = minutes < 10 ? '0' + minutes : minutes;
-
-        return `${weekday}, ${day < 10 ? '0' + day : day}/${month}/${year} ${hours}:${minutesFormatted} ${ampm}`;
+        return date.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
     };
     
     // If loading, show a loading message
@@ -188,7 +193,7 @@ export default function Task() {
                 {/* Add Task Button */}
                 <Button
                     variant="success"
-                    onClick={() => setShowModal(true)}
+                    onClick={() => setShowCreateModal(true)}
                     className="position-fixed"
                     style={{
                         bottom: "20px",
@@ -201,10 +206,10 @@ export default function Task() {
                 >
                     + Add Task
                 </Button>
-                {/* Modal for creating a new / edit task */}
-                <Modal show={showModal} onHide={handleCloseModal} backdrop="static">
+                {/* Modal for creating a new task */}
+                <Modal show={showCreateModal} onHide={handleCloseCreateModal} backdrop="static">
                     <Modal.Header closeButton>
-                        <Modal.Title>{editingTask ? "Edit Task" : "Create New Task"}</Modal.Title>
+                        <Modal.Title>Create New Task</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form>
@@ -214,12 +219,8 @@ export default function Task() {
                                     type="text"
                                     placeholder="Enter task title"
                                     name="title"
-                                    value={editingTask ? editingTask.title : newTask.title}
-                                    onChange={(e) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, title: e.target.value })
-                                            : handleChange(e)
-                                    }
+                                    value={newTask.title}
+                                    onChange={handleChange}
                                 />
                             </Form.Group>
                             <Form.Group controlId="taskDescription">
@@ -228,12 +229,8 @@ export default function Task() {
                                     as="textarea" rows={2}
                                     placeholder="Enter task description"
                                     name="description"
-                                    value={editingTask ? editingTask.description : newTask.description}
-                                    onChange={(e) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, description: e.target.value })
-                                            : handleChange(e)
-                                    }
+                                    value={newTask.description}
+                                    onChange={handleChange}
                                 />
                             </Form.Group>
                             <Form.Group controlId="taskPriority" className="mt-3">
@@ -241,12 +238,8 @@ export default function Task() {
                                 <Form.Control
                                     as="select"
                                     name="priority"
-                                    value={editingTask ? editingTask.priority : newTask.priority}
-                                    onChange={(e) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, priority: e.target.value })
-                                            : handleChange(e)
-                                    }
+                                    value={newTask.priority}
+                                    onChange={handleChange}
                                 >
                                     <option value="High">High</option>
                                     <option value="Medium">Medium</option>
@@ -259,13 +252,9 @@ export default function Task() {
                                 <Form.Control
                                     as="select"
                                     name="status"
-                                    value={editingTask ? editingTask.status : newTask.status}
-                                    onChange={(e) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, status: e.target.value })
-                                            : handleChange(e)
-                                    }
-                                    >
+                                    value={newTask.status}
+                                    onChange={handleChange}
+                                >
                                     <option value="Todo">To do</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="Completed">Completed</option>
@@ -276,12 +265,8 @@ export default function Task() {
                                 <Form.Label>Start Date & Time</Form.Label>
                                 <div className="d-block">
                                     <DatePicker
-                                        selected={editingTask ? editingTask.startTime : newTask.startTime}
-                                        onChange={(date) =>
-                                            editingTask
-                                                ? setEditingTask({ ...editingTask, startTime: date })
-                                                : handleDateChange(date)
-                                        }
+                                        selected={newTask.startTime}
+                                        onChange={handleStartDateChange}
                                         showTimeSelect
                                         dateFormat="Pp"
                                         className="form-control"
@@ -293,12 +278,8 @@ export default function Task() {
                                 <Form.Label>End Date & Time</Form.Label>
                                 <div className="d-block">
                                     <DatePicker
-                                        selected={editingTask ? editingTask.endTime : newTask.endTime}
-                                        onChange={(date) =>
-                                            editingTask
-                                                ? setEditingTask({ ...editingTask, endTime: date })
-                                                : handleDateChange(date)
-                                        }
+                                        selected={newTask.endTime}
+                                        onChange={handleEndDateChange}
                                         showTimeSelect
                                         dateFormat="Pp"
                                         className="form-control"
@@ -308,11 +289,8 @@ export default function Task() {
                         </Form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button
-                            variant="primary"
-                            onClick={editingTask ? handleEditTask : handleCreateTask}
-                        >
-                            {editingTask ? "Save Changes" : "Create Task"}
+                        <Button variant="primary" onClick={handleCreateTask}>
+                            Create Task
                         </Button>
                     </Modal.Footer>
                 </Modal>
@@ -386,7 +364,7 @@ export default function Task() {
             {/* Add Task Button */}
             <Button
                 variant="success"
-                onClick={() => setShowModal(true)}
+                onClick={() => setShowCreateModal(true)}
                 className="position-fixed"
                 style={{
                     bottom: "20px",
@@ -399,10 +377,11 @@ export default function Task() {
             >
                 + Add Task
             </Button>
-            {/* Modal for creating a new / edit task */}
-            <Modal show={showModal} onHide={handleCloseModal} backdrop="static">
+
+            {/* Modal for creating a new task */}
+            <Modal show={showCreateModal} onHide={handleCloseCreateModal} backdrop="static">
                 <Modal.Header closeButton>
-                    <Modal.Title>{editingTask ? "Edit Task" : "Create New Task"}</Modal.Title>
+                    <Modal.Title>Create New Task</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -412,12 +391,8 @@ export default function Task() {
                                 type="text"
                                 placeholder="Enter task title"
                                 name="title"
-                                value={editingTask ? editingTask.title : newTask.title}
-                                onChange={(e) =>
-                                    editingTask
-                                        ? setEditingTask({ ...editingTask, title: e.target.value })
-                                        : handleChange(e)
-                                }
+                                value={newTask.title}
+                                onChange={handleChange}
                             />
                         </Form.Group>
                         <Form.Group controlId="taskDescription">
@@ -426,12 +401,8 @@ export default function Task() {
                                 as="textarea" rows={2}
                                 placeholder="Enter task description"
                                 name="description"
-                                value={editingTask ? editingTask.description : newTask.description}
-                                onChange={(e) =>
-                                    editingTask
-                                        ? setEditingTask({ ...editingTask, description: e.target.value })
-                                        : handleChange(e)
-                                }
+                                value={newTask.description}
+                                onChange={handleChange}
                             />
                         </Form.Group>
                         <Form.Group controlId="taskPriority" className="mt-3">
@@ -439,12 +410,8 @@ export default function Task() {
                             <Form.Control
                                 as="select"
                                 name="priority"
-                                value={editingTask ? editingTask.priority : newTask.priority}
-                                onChange={(e) =>
-                                    editingTask
-                                        ? setEditingTask({ ...editingTask, priority: e.target.value })
-                                        : handleChange(e)
-                                }
+                                value={newTask.priority}
+                                onChange={handleChange}
                             >
                                 <option value="High">High</option>
                                 <option value="Medium">Medium</option>
@@ -457,13 +424,9 @@ export default function Task() {
                             <Form.Control
                                 as="select"
                                 name="status"
-                                value={editingTask ? editingTask.status : newTask.status}
-                                onChange={(e) =>
-                                    editingTask
-                                        ? setEditingTask({ ...editingTask, status: e.target.value })
-                                        : handleChange(e)
-                                }
-                                >
+                                value={newTask.status}
+                                onChange={handleChange}
+                            >
                                 <option value="Todo">To do</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="Completed">Completed</option>
@@ -474,12 +437,8 @@ export default function Task() {
                             <Form.Label>Start Date & Time</Form.Label>
                             <div className="d-block">
                                 <DatePicker
-                                    selected={editingTask ? editingTask.startTime : newTask.startTime}
-                                    onChange={(date) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, startTime: date })
-                                            : handleDateChange(date)
-                                    }
+                                    selected={newTask.startTime}
+                                    onChange={handleStartDateChange}
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
@@ -491,12 +450,8 @@ export default function Task() {
                             <Form.Label>End Date & Time</Form.Label>
                             <div className="d-block">
                                 <DatePicker
-                                    selected={editingTask ? editingTask.endTime : newTask.endTime}
-                                    onChange={(date) =>
-                                        editingTask
-                                            ? setEditingTask({ ...editingTask, endTime: date })
-                                            : handleDateChange(date)
-                                    }
+                                    selected={newTask.endTime}
+                                    onChange={handleEndDateChange}
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
@@ -506,14 +461,101 @@ export default function Task() {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button
-                        variant="primary"
-                        onClick={editingTask ? handleEditTask : handleCreateTask}
-                    >
-                        {editingTask ? "Save Changes" : "Create Task"}
+                    <Button variant="primary" onClick={handleCreateTask}>
+                        Create Task
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            {/* Modal for editing an existing task */}
+            <Modal show={showEditModal} onHide={handleCloseEditModal} backdrop="static">
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Task</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group controlId="taskTitle">
+                            <Form.Label>Title</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter task title"
+                                name="title"
+                                value={editingTask ? editingTask.title : ""}
+                                onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="taskDescription">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea" rows={2}
+                                placeholder="Enter task description"
+                                name="description"
+                                value={editingTask ? editingTask.description : ""}
+                                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="taskPriority" className="mt-3">
+                            <Form.Label>Priority</Form.Label>
+                            <Form.Control
+                                as="select"
+                                name="priority"
+                                value={editingTask ? editingTask.priority : ""}
+                                onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                            >
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </Form.Control>
+                        </Form.Group>
+
+                        <Form.Group controlId="taskStatus" className="mt-3">
+                            <Form.Label>Status</Form.Label>
+                            <Form.Control
+                                as="select"
+                                name="status"
+                                value={editingTask ? editingTask.status : ""}
+                                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
+                            >
+                                <option value="Todo">To do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </Form.Control>
+                        </Form.Group>
+
+                        <Form.Group controlId="taskStartTime" className="mt-3">
+                            <Form.Label>Start Date & Time</Form.Label>
+                            <div className="d-block">
+                                <DatePicker
+                                    selected={editingTask ? editingTask.startTime : new Date()}
+                                    onChange={(date) => setEditingTask({ ...editingTask, startTime: date })}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="form-control"
+                                />
+                            </div>
+                        </Form.Group>
+
+                        <Form.Group controlId="taskEndTime" className="mt-3">
+                            <Form.Label>End Date & Time</Form.Label>
+                            <div className="d-block">
+                                <DatePicker
+                                    selected={editingTask ? editingTask.endTime : new Date()}
+                                    onChange={(date) => setEditingTask({ ...editingTask, endTime: date })}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="form-control"
+                                />
+                            </div>
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleEditTask}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
             {/* Modal for delete task */}
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
                 <Modal.Header closeButton>
