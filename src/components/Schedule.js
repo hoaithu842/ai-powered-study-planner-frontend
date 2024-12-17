@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -50,7 +50,6 @@ const Schedule = () => {
 
       setTasks(fetchedTasks);
       setLoading(false);
-      console.log(tasks);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch tasks");
@@ -59,28 +58,45 @@ const Schedule = () => {
   };
 
   // Handle drag-and-drop event
-  const handleEventDrop = async ({ event, start, end }) => {
-    const updatedTask = { ...event, start, end };
+    const handleEventDrop = useCallback(
+        ({ event, start, end }) => {
+            const newStatus = end < new Date() ? "Expired" : event.status;
+            setTasks((prevTasks) =>
+                prevTasks.map((task) => 
+                task.id === event.id ? { ...event, start, end, status: newStatus } : task
+        )
+    );
+    
+    updateTaskOnServer(event.id, start, end, newStatus);
+  },
+  [setTasks]
+);
+
+    const updateTaskOnServer = async (taskId, start, end, newStatus) => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/tasks/${event.id}`,
+        const response = await axios.put(
+        `${process.env.REACT_APP_API_URL}/tasks/${taskId}`,
         {
-          startDate: start,
-          endDate: end,
+            startTime: start,
+            endTime: end,
+            status: newStatus,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` },
         }
-      );
-
-      // Update state after successful API call
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => (task._id === event.id ? updatedTask : task))
-      );
+        );
+        console.log("Task successfully updated:", response.data);
     } catch (err) {
-      console.error("Error updating task:", err);
+        console.error("Error updating task:", err.response?.data || err.message);
+
+        // Revert the changes to the task if the API call fails
+        setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+            task._id === taskId ? { ...task, } : task
+        )
+        );
     }
-  };
+    };
 
   // Calendar Event Styling
   const eventStyleGetter = (event) => {
