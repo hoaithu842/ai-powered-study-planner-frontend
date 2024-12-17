@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge } from "react-bootstrap";
+import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, DropdownButton, Dropdown } from "react-bootstrap";
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -15,6 +15,79 @@ export default function Task() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [feedback, setFeedback] = useState("");
+    const priorityOrder = {
+        High: 1,
+        Medium: 2,
+        Low: 3,
+      };
+    const sortTasksByPriority = () => {
+    const sortedTasks = [...tasks].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    setTasks(sortedTasks);
+    };
+
+    const statusOrder = {
+        Todo: 1,
+        "In Progress": 2,
+        Completed: 3,
+        Expired: 4,
+    };
+    const sortTasksByStatus = () => {
+        const sortedTasks = [...tasks].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+        setTasks(sortedTasks);
+      };
+    
+    const [filteredTasks, setFilteredTasks] = useState([]);
+    const [priorityFilter, setPriorityFilter] = useState(null);
+    const [statusFilter, setStatusFilter] = useState(null);
+    const filterTasks = () => {
+        let filtered = [...tasks];
+    
+        if (priorityFilter && priorityFilter !== "All Priority") {
+          filtered = filtered.filter(task => task.priority === priorityFilter);
+        }
+    
+        if (statusFilter && statusFilter !== "All Status") {
+          filtered = filtered.filter(task => task.status === statusFilter);
+        }
+    
+        setFilteredTasks(filtered);
+    };
+    const handlePriorityFilterChange = (priority) => {
+        setPriorityFilter(priority);
+        filterTasks();
+      };
+    
+      const handleStatusFilterChange = (status) => {
+        setStatusFilter(status);
+        filterTasks();
+      };
+      const fetchFeedback = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/analyze-schedule`, {
+                headers: {
+                    Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, 
+                },
+            });
+            setFeedback(response.data.feedback);
+            console.log("Feedback received:", response.data.feedback);
+        } catch (error) {
+            // Improved error logging
+            console.error("Error fetching feedback:", error);
+            if (error.response) {
+                // If the error has a response (from the server)
+                console.error("Response error status:", error.response.status);
+                console.error("Response error data:", error.response.data);
+            } else if (error.request) {
+                // If no response received (likely network issue)
+                console.error("No response received:", error.request);
+            } else {
+                // If there's any other error (configuration or setting issue)
+                console.error("Error setting up the request:", error.message);
+            }
+        }
+    };
+    
 
     const handleCloseCreateModal = () => {
         setShowCreateModal(false);
@@ -167,6 +240,7 @@ export default function Task() {
         });
     };
     
+    
     // If loading, show a loading message
     if (loading) {
         return (
@@ -301,82 +375,149 @@ export default function Task() {
     return (
         <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
             <Row style={{padding: "20px"}}>
-                {tasks.map((task) => (
-                    <Col xs={12} sm={12} md={12} lg={12} key={task._id} className="mb-4 d-flex justify-content-center">
-                        <Card style={{ width: "30rem" }}>
-                            <Card.Body>
-                                <Card.Title>{task.title}</Card.Title>
-                                <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
-                                <Card.Text className="mb-0 fs-6 fw-lighter">{formatDate(task.startTime)} - {formatDate(task.endTime)}
-                                </Card.Text>
-                                <div>
-                                <Badge
-                                    bg={
-                                    task.priority === 'High'
-                                        ? 'danger'
-                                        : task.priority === 'Medium'
-                                        ? 'warning'
-                                        : 'secondary'
-                                    }
-                                    className="me-2"
-                                >
-                                    {task.priority}
-                                </Badge>
+                <Col xs={12} sm={12} md={6} lg={4} className="mb-4">
+                <div className="d-flex flex-column align-items-center">
+                    {/* Add Task & Analyze with AI Buttons */}
+                    <Row className="mb-3 w-100">
+                        <Col xs={6}>
+                        <Button
+                            variant="success"
+                            onClick={() => setShowCreateModal(true)}
+                            style={ {width: "100%"}}
+                        >
+                            + Add Task
+                        </Button>
+                        </Col>
+                        <Col xs={6}>
+                        <Button
+                            variant="info"
+                            onClick={() => fetchFeedback()}
+                            style={ {width: "100%"}}
+                        >
+                            Analyze with AI
+                        </Button>
+                        </Col>
+                    </Row>
+                    {/* Filters */}
+                    <Row className="mb-3 w-100">
+                        <Col xs={6}>
+                        <DropdownButton
+                            variant="outline-secondary"
+                            title={priorityFilter ? `Priority: ${priorityFilter}` : "Priority (Filter)"}
+                            style={ {width: "100%"}}
+                            onSelect={handlePriorityFilterChange}
+                        >
+                            <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
+                            <Dropdown.Item eventKey="High">High</Dropdown.Item>
+                            <Dropdown.Item eventKey="Medium">Medium</Dropdown.Item>
+                            <Dropdown.Item eventKey="Low">Low</Dropdown.Item>
+                        </DropdownButton>
+                        </Col>
+                        <Col xs={6}>
+                        <DropdownButton
+                            variant="outline-secondary"
+                            title={statusFilter ? `Status: ${statusFilter}` : "Status (Filter)"}
+                            style={ {width: "100%"}}
+                            onSelect={handleStatusFilterChange}
+                        >
+                            <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
+                            <Dropdown.Item eventKey="Todo">Todo</Dropdown.Item>
+                            <Dropdown.Item eventKey="In Progress">In Progress</Dropdown.Item>
+                            <Dropdown.Item eventKey="Completed">Completed</Dropdown.Item>
+                            <Dropdown.Item eventKey="Completed">Expired</Dropdown.Item>
+                        </DropdownButton>
+                        </Col>
+                    </Row>
+                    {/* Sorting Buttons  */}
+                    <Row className="mb-3 w-100">
+                        <Col xs={6}>
+                        <Button variant="outline-secondary" style={ {width: "100%"}} onClick={sortTasksByPriority}>
+                            Sort By Priority
+                        </Button>
+                        </Col>
+                        <Col xs={6}>
+                        <Button variant="outline-secondary" style={ {width: "100%"}} onClick={sortTasksByStatus}>
+                            By Status
+                        </Button>
+                        </Col>
+                    </Row>
 
-                                <Badge
-                                    bg={
-                                    task.status === 'Todo'
-                                        ? 'warning' 
-                                        : task.status === 'In Progress'
-                                        ? 'primary' 
-                                        : task.status === 'Completed'
-                                        ? 'success' 
-                                        : 'secondary'
-                                    }
-                                >
-                                    {task.status}
-                                </Badge>
-                                </div>
+                    {/* Feedback Display */}
+                    {feedback && (
+                        <Row className="mb-3 w-100">
+                        <Col xs={12}>
+                            <div className="alert alert-info">
+                            <strong>Feedback:</strong> {feedback}
+                            </div>
+                        </Col>
+                        </Row>
+                    )}
+                </div>
 
-                                {/* Edit and Delete Buttons */}
-                                <div className="d-flex justify-content-end">
-                                    <Button
-                                        variant="outline-dark"
-                                        onClick={() => openEditModal(task)}
-                                        className="border-0 me-2"
-                                    >
-                                        <FaEdit className="icon-button"/>
-                                    </Button>
-                                    <Button
-                                        variant="outline-dark"
-                                        onClick={() => openDeleteModal(task._id)}
-                                        className="border-0 text-danger"
-                                    >
-                                        <FaTrashAlt className="icon-button" />
-                                    </Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
+                </Col>
+                <Col xs={12} sm={12} md={6} lg={8} className="mb-4">
+                    <Row>
+                        {tasks.map((task) => (
+                            <Col xs={12} sm={12} md={12} lg={12} key={task._id} className="mb-4 d-flex justify-content-center">
+                                <Card style={{ width: "30rem" }}>
+                                    <Card.Body>
+                                        <Card.Title>{task.title}</Card.Title>
+                                        <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
+                                        <Card.Text className="mb-0 fs-6 fw-lighter">{formatDate(task.startTime)} - {formatDate(task.endTime)}
+                                        </Card.Text>
+                                        <div>
+                                        <Badge
+                                            bg={
+                                            task.priority === 'High'
+                                                ? 'danger'
+                                                : task.priority === 'Medium'
+                                                ? 'warning'
+                                                : 'secondary'
+                                            }
+                                            className="me-2"
+                                        >
+                                            {task.priority}
+                                        </Badge>
+
+                                        <Badge
+                                            bg={
+                                            task.status === 'Todo'
+                                                ? 'warning' 
+                                                : task.status === 'In Progress'
+                                                ? 'primary' 
+                                                : task.status === 'Completed'
+                                                ? 'success' 
+                                                : 'secondary'
+                                            }
+                                        >
+                                            {task.status}
+                                        </Badge>
+                                        </div>
+
+                                        {/* Edit and Delete Buttons */}
+                                        <div className="d-flex justify-content-end">
+                                            <Button
+                                                variant="outline-dark"
+                                                onClick={() => openEditModal(task)}
+                                                className="border-0 me-2"
+                                            >
+                                                <FaEdit className="icon-button"/>
+                                            </Button>
+                                            <Button
+                                                variant="outline-dark"
+                                                onClick={() => openDeleteModal(task._id)}
+                                                className="border-0 text-danger"
+                                            >
+                                                <FaTrashAlt className="icon-button" />
+                                            </Button>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+                </Col>
             </Row>
-
-            {/* Add Task Button */}
-            <Button
-                variant="success"
-                onClick={() => setShowCreateModal(true)}
-                className="position-fixed"
-                style={{
-                    bottom: "20px",
-                    right: "20px",
-                    width: "120px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                + Add Task
-            </Button>
 
             {/* Modal for creating a new task */}
             <Modal show={showCreateModal} onHide={handleCloseCreateModal} backdrop="static">
