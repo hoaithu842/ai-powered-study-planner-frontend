@@ -6,6 +6,8 @@
 }
 
 body {
+  width: 100%;
+  margin: 0;
   font-family: 'Arial', sans-serif;
   background-color: #f8f9fa;
   color: #333;
@@ -39,7 +41,6 @@ label {
 }
 
 input,
-button {
   width: 100%;
   padding: 12px; /* Increased padding for the form fields */
   margin-top: 5px; /* Reduced margin to make fields closer */
@@ -63,11 +64,6 @@ button {
   transition: all 0.3s ease-in-out;
   border: none;
   margin-top: 15px; /* Some space above the button */
-}
-
-button:hover {
-  background-color: #357ae8;
-  transform: scale(1.05);
 }
 
 /* Google Login Button Styling */
@@ -100,7 +96,7 @@ button:hover {
 /* Customizing the Container's Padding */
 .container {
   padding: 0 20px;
-  margin-top: 40px; /* Increase space above the entire form */
+  margin-top: 40px;
 }
 
 /* Sign Up Heading Styling */
@@ -120,4 +116,20 @@ h2 {
   button {
     padding: 15px;
   }
+}
+.navbar {
+  width: 100%;
+}
+.nav-link {
+  color: #000;
+}
+
+.nav-link.active {
+  font-weight: bold;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

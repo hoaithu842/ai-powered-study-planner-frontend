@@ -6,22 +6,27 @@ import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Homepage from "./Homepage";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
+import Profile from "./Profile";
+import Task from "./Task";
+import NavigationBar from './NavigationBar';
 
 function App() {
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-            <div className="w-100" style={{maxWidth: "400px"}}>
+        
                 <Router>
                     <AuthProvider>
+                        <NavigationBar />
+                        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
                         <Routes>
                             <Route path="/" element={<PrivateRoute/>}/>
                             <Route path="/signup" element={<Signup/>}/>
                             <Route path="/login" element={<Login/>}/>
+                            <Route path="/profile" element={<Profile/>}/>
+                            <Route path="/tasks" element={<Task/>}/>
                         </Routes>
+                        </Container>
                     </AuthProvider>
                 </Router>
-            </div>
-        </Container>
     );
 }
 

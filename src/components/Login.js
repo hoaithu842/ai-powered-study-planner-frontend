@@ -6,6 +6,7 @@ import {useNavigate} from 'react-router-dom';
 import firebase from "firebase/compat/app";
 import 'firebase/compat/auth';
 import {Link} from "react-router";
+import axios from 'axios';  // Import axios for API calls
 
 export default function Login() {
     const emailRef = useRef();
@@ -29,6 +30,33 @@ export default function Login() {
             setLoading(true);
             await login(emailRef.current.value, passwordRef.current.value);
             // On successful login, navigate to the homepage
+
+            // Get the token after login
+            const user = await firebase.auth().currentUser;
+            const token = await user.getIdToken();  // Get the Firebase token
+
+            // Call your API after the login is successful
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                headers: {
+                    Authorization: `Bearer ${token}`  // Include the token in the Authorization header
+                },
+            });
+
+            // Handle the response (user data) here
+            if (res.data && res.data) {
+                console.log(res.data);
+                // const userData = res.data.User;
+                // console.log('User data:', userData);
+                //
+                // // Check if 'should_update' is true
+                // if (userData.should_update) {
+                //     // If the user needs to update their profile, navigate to profile page
+                //     navigate('/profile');
+                // } else {
+                //     // If the user is all set, navigate to the homepage
+                //     navigate('/');
+                // }
+            }
             navigate('/');
         } catch {
             setError('Failed to login');
@@ -38,9 +66,32 @@ export default function Login() {
 
     const loginWithGoogle = () => {
         firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 if (userCredential) {
-                    navigate('/');
+                    // Get the token after Google login
+                    const token = await userCredential.getIdToken();
+
+                    // Call your API after the Google login is successful
+                    const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`  // Include the token in the Authorization header
+                        },
+                    });
+
+                    // Handle the response (user data) here
+                    if (res.data && res.data.User) {
+                        const userData = res.data.User;
+                        console.log('User data:', userData);
+
+                        // Check if 'should_update' is true
+                        if (userData.should_update) {
+                            // If the user needs to update their profile, navigate to profile page
+                            navigate('/profile');
+                        } else {
+                            // If the user is all set, navigate to the homepage
+                            navigate('/');
+                        }
+                    }
                 }
             })
             .catch((error) => {

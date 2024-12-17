@@ -24,7 +24,6 @@ export default function Dashboard() {
                     Authorization: `Bearer ${token}`
                 },
             });
-
             setTodos(res.data);
         } catch (error) {
             console.error('Error fetching todos:', error);
