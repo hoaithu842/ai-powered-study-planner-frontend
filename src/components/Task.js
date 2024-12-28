@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
+import ReactMarkdown from 'react-markdown';
 
 export default function Task() {
     const { token } = useAuthContext(); // Get token from context
@@ -64,30 +65,20 @@ export default function Task() {
       };
       const fetchFeedback = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/analyze-schedule`, {
+            setLoading(true); // Show loading indicator
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/analyze-schedule`, {
                 headers: {
-                    Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, 
+                    Authorization: `Bearer ${token}`
                 },
             });
-            setFeedback(response.data.feedback);
-            console.log("Feedback received:", response.data.feedback);
+            setFeedback(res.data.feedback); // Set feedback from the response
         } catch (error) {
-            // Improved error logging
-            console.error("Error fetching feedback:", error);
-            if (error.response) {
-                // If the error has a response (from the server)
-                console.error("Response error status:", error.response.status);
-                console.error("Response error data:", error.response.data);
-            } else if (error.request) {
-                // If no response received (likely network issue)
-                console.error("No response received:", error.request);
-            } else {
-                // If there's any other error (configuration or setting issue)
-                console.error("Error setting up the request:", error.message);
-            }
+            console.error('Error fetching analysis:', error);
+            setError('Failed to analyze schedule. Please try again later.');
+        } finally {
+            setLoading(false); // Hide loading indicator
         }
     };
-    
 
     const handleCloseCreateModal = () => {
         setShowCreateModal(false);
@@ -444,10 +435,10 @@ export default function Task() {
 
                     {/* Feedback Display */}
                     {feedback && (
-                        <Row className="mb-3 w-100">
+                        <Row className="mb-3">
                         <Col xs={12}>
                             <div className="alert alert-info">
-                            <strong>Feedback:</strong> {feedback}
+                            <ReactMarkdown>{feedback}</ReactMarkdown>
                             </div>
                         </Col>
                         </Row>
