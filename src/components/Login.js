@@ -11,13 +11,13 @@ import axios from 'axios';  // Import axios for API calls
 export default function Login() {
     const emailRef = useRef();
     const passwordRef = useRef();
-    const {login, currentUser} = useAuthContext();  // Access currentUser from AuthContext
+    const {login, currentUser, loginWithGoogle} = useAuthContext();  // Access currentUser from AuthContext
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && currentUser.emailVerified) {
             navigate('/');  // Redirect to homepage if logged in
         }
     }, [currentUser, navigate]);
@@ -41,6 +41,37 @@ export default function Login() {
         }
     };
 
+    const handleApiCall = async (token) => {
+        try {
+            // Call your API after the login is successful
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                headers: {
+                    Authorization: `Bearer ${token}` // Include the token in the Authorization header
+                },
+            });
+
+            console.log("API response:", res.data); // Log the API response for debugging
+
+            // Handle the response (user data) here
+            if (res.data && res.data.User) {
+                const userData = res.data.User;
+                console.log('User data:', userData);
+
+                // Check if 'should_update' is true
+                if (userData.should_update) {
+                    // If the user needs to update their profile, navigate to profile page
+                    navigate('/profile');
+                } else {
+                    // If the user is all set, navigate to the homepage
+                    navigate('/');
+                }
+            }
+        } catch (error) {
+            setError("Failed to fetch user data from the API.");
+            console.error("API call error:", error);
+        }
+    };
+
     async function handleSubmit(e) {
         e.preventDefault();
 
@@ -48,55 +79,36 @@ export default function Login() {
             setError('');
             setLoading(true);
             await login(emailRef.current.value, passwordRef.current.value);
-            // On successful login, navigate to the homepage
             const user = await firebase.auth().currentUser;
-            const token = await user.getIdToken();  // Get the Firebase token
-            // Call your API after the login is successful
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
-                headers: {
-                    Authorization: `Bearer ${token}`  // Include the token in the Authorization header
-                },
-            });
-            navigate('/');
-        } catch {
+
+            if (!user.emailVerified) {
+                setError('Please verify your email before logging in.');
+                await firebase.auth().signOut(); // Sign out the user if not verified
+                setLoading(false);
+            } else {
+                const token = await user.getIdToken(); // Get the Firebase token
+                console.log("Token:", token); // Log token for debugging
+
+                await handleApiCall(token);
+            }
+        } catch (error) {
             setError('Failed to login');
+            console.error("Login error:", error); // Log the error for debugging
         }
         setLoading(false);
     }
 
-    const loginWithGoogle = () => {
-        firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
-            .then(async (userCredential) => {
-                if (userCredential) {
-                    // Get the token after Google login
-                    const token = await userCredential.getIdToken();
+    const handleGoogleLogin = async () => {
+        try {
+            const token = await loginWithGoogle();
+            console.log("Google login successful, token:", token);
 
-                    // Call your API after the Google login is successful
-                    const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`  // Include the token in the Authorization header
-                        },
-                    });
-
-                    // Handle the response (user data) here
-                    if (res.data && res.data.User) {
-                        const userData = res.data.User;
-                        console.log('User data:', userData);
-
-                        // Check if 'should_update' is true
-                        if (userData.should_update) {
-                            // If the user needs to update their profile, navigate to profile page
-                            navigate('/profile');
-                        } else {
-                            // If the user is all set, navigate to the homepage
-                            navigate('/');
-                        }
-                    }
-                }
-            })
-            .catch((error) => {
-                console.error("Error with Google login: ", error);
-            });
+            // Make the API call using the token
+            await handleApiCall(token);
+        } catch (err) {
+            setError("Failed to login with Google.");
+            console.error("Google login error:", err);
+        }
     };
 
     return (
@@ -131,7 +143,7 @@ export default function Login() {
 
                 <div className="w-100 text-center mt-3">
                     <GoogleLoginButton
-                        onClick={loginWithGoogle}
+                        onClick={handleGoogleLogin}
                         style={{width: "100%"}}
                     />
                 </div>
