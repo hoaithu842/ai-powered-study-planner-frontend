@@ -22,6 +22,25 @@ export default function Login() {
         }
     }, [currentUser, navigate]);
 
+    function resetPassword(email) {
+        return firebase.auth().sendPasswordResetEmail(email);
+    }
+
+    const handleForgotPassword = async () => {
+        const email = emailRef.current.value;
+        if (!email) {
+            setError("Please enter your email address to reset your password.");
+            return;
+        }
+        try {
+            setError('');
+            await resetPassword(email);
+            alert("Password reset email sent. Check your inbox.");
+        } catch {
+            setError("Failed to send password reset email.");
+        }
+    };
+
     async function handleSubmit(e) {
         e.preventDefault();
 
@@ -30,7 +49,14 @@ export default function Login() {
             setLoading(true);
             await login(emailRef.current.value, passwordRef.current.value);
             // On successful login, navigate to the homepage
-            
+            const user = await firebase.auth().currentUser;
+            const token = await user.getIdToken();  // Get the Firebase token
+            // Call your API after the login is successful
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                headers: {
+                    Authorization: `Bearer ${token}`  // Include the token in the Authorization header
+                },
+            });
             navigate('/');
         } catch {
             setError('Failed to login');
@@ -91,6 +117,11 @@ export default function Login() {
                             </Form.Group>
                             <Button disabled={loading} className="w-100" type="submit">Log In</Button>
                         </Form>
+                        <div className="w-100 text-center mt-2">
+                            <Button variant="link" onClick={handleForgotPassword}>
+                                Forgot Password?
+                            </Button>
+                        </div>
                     </Card.Body>
                 </Card>
 
