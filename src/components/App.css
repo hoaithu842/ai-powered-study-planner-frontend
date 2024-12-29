@@ -150,3 +150,10 @@ h2 {
   color: #007bff;
   text-decoration: none;
 }
+
+.tasks-list {
+  height: 80vh;
+  overflow-y: auto;
+  border: 1px solid #000;
+  padding: 1rem;
+}

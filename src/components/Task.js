@@ -82,13 +82,14 @@ export default function Task() {
 
     const handleCloseCreateModal = () => {
         setShowCreateModal(false);
-        setNewTask({ title: "", description: "", priority: "", status: "", startTime: new Date(), endTime: new Date() });
+        setNewTask({ title: "", description: "", priority: "", status: "", estimatedTime: 0, startTime: new Date(), endTime: new Date() });
     }
     const [newTask, setNewTask] = useState({
         title: "",
         description: "",
         priority: "Medium",
         status: "Todo",
+        estimatedTime: 0,
         startTime: new Date(),
         endTime: new Date(),
     });
@@ -140,7 +141,35 @@ export default function Task() {
             endTime: date,
         }));
     };
+    const [errors, setErrors] = useState({
+        title: "",
+        estimatedTime: 0,
+    });
+    const validateForm = () => {
+        let valid = true;
+        const newErrors = { title: "", estimatedTime: 0 };
 
+        // Validate Title
+        if (!newTask.title.trim()) {
+            newErrors.title = "Title is required.";
+            valid = false;
+        }
+
+        // Validate Estimate Hour
+        const estimatedTime = parseFloat(newTask.estimatedTime);
+        if (!newTask.estimatedTime.trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
+            newErrors.estimatedTime = "Estimate hour must be a positive number.";
+            valid = false;
+        }
+
+        setErrors(newErrors);
+        return valid;
+    };
+    const handleSubmit = () => {
+        if (validateForm()) {
+            handleCreateTask(newTask);
+        }
+    };
     // Handle task creation
     const handleCreateTask = async () => {
         try {
@@ -155,7 +184,7 @@ export default function Task() {
             );
             setTasks([...tasks, response.data]); // Add new task to the list
             setShowCreateModal(false); // Close modal
-            setNewTask({ title: "", description: "", priority: "", status: "", startTime: new Date(), endTime: new Date() }); // Reset form
+            setNewTask({ title: "", description: "", priority: "", status: "", estimatedTime: 0, startTime: new Date(), endTime: new Date() }); // Reset form
         } catch (err) {
             setError("Failed to create task");
         }
@@ -250,123 +279,10 @@ export default function Task() {
         );
     }
 
-    // If no tasks are found
-    if (tasks.length === 0) {
-        return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-                <h4>No tasks found</h4>
-                {/* Add Task Button */}
-                <Button
-                    variant="success"
-                    onClick={() => setShowCreateModal(true)}
-                    className="position-fixed"
-                    style={{
-                        bottom: "20px",
-                        right: "20px",
-                        width: "120px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    + Add Task
-                </Button>
-                {/* Modal for creating a new task */}
-                <Modal show={showCreateModal} onHide={handleCloseCreateModal} backdrop="static">
-                    <Modal.Header closeButton>
-                        <Modal.Title>Create New Task</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form>
-                            <Form.Group controlId="taskTitle">
-                                <Form.Label>Title</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Enter task title"
-                                    name="title"
-                                    value={newTask.title}
-                                    onChange={handleChange}
-                                />
-                            </Form.Group>
-                            <Form.Group controlId="taskDescription">
-                                <Form.Label>Description</Form.Label>
-                                <Form.Control
-                                    as="textarea" rows={2}
-                                    placeholder="Enter task description"
-                                    name="description"
-                                    value={newTask.description}
-                                    onChange={handleChange}
-                                />
-                            </Form.Group>
-                            <Form.Group controlId="taskPriority" className="mt-3">
-                                <Form.Label>Priority</Form.Label>
-                                <Form.Control
-                                    as="select"
-                                    name="priority"
-                                    value={newTask.priority}
-                                    onChange={handleChange}
-                                >
-                                    <option value="High">High</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Low">Low</option>
-                                </Form.Control>
-                            </Form.Group>
-
-                            <Form.Group controlId="taskStatus" className="mt-3">
-                                <Form.Label>Status</Form.Label>
-                                <Form.Control
-                                    as="select"
-                                    name="status"
-                                    value={newTask.status}
-                                    onChange={handleChange}
-                                >
-                                    <option value="Todo">To do</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Completed">Completed</option>
-                                </Form.Control>
-                            </Form.Group>
-
-                            <Form.Group controlId="taskStartTime" className="mt-3">
-                                <Form.Label>Start Date & Time</Form.Label>
-                                <div className="d-block">
-                                    <DatePicker
-                                        selected={newTask.startTime}
-                                        onChange={handleStartDateChange}
-                                        showTimeSelect
-                                        dateFormat="Pp"
-                                        className="form-control"
-                                    />
-                                </div>
-                            </Form.Group>
-
-                            <Form.Group controlId="taskEndTime" className="mt-3">
-                                <Form.Label>End Date & Time</Form.Label>
-                                <div className="d-block">
-                                    <DatePicker
-                                        selected={newTask.endTime}
-                                        onChange={handleEndDateChange}
-                                        showTimeSelect
-                                        dateFormat="Pp"
-                                        className="form-control"
-                                    />
-                                </div>
-                            </Form.Group>
-                        </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="primary" onClick={handleCreateTask}>
-                            Create Task
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            </Container>
-        );
-    }
-
     return (
         <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
             <Row style={{padding: "20px"}}>
-                <Col xs={12} sm={12} md={6} lg={4} className="mb-4">
+                <Col xs={12} sm={12} md={6} lg={6} className="mb-4">
                 <div className="d-flex flex-column align-items-center">
                     {/* Add Task & Analyze with AI Buttons */}
                     <Row className="mb-3 w-100">
@@ -446,66 +362,85 @@ export default function Task() {
                 </div>
 
                 </Col>
-                <Col xs={12} sm={12} md={6} lg={8} className="mb-4">
+                <Col xs={12} sm={12} md={6} lg={6} className="mb-4 tasks-list">
                     <Row>
-                        {tasks.map((task) => (
-                            <Col xs={12} sm={12} md={12} lg={12} key={task._id} className="mb-4 d-flex justify-content-center">
-                                <Card style={{ width: "30rem" }}>
-                                    <Card.Body>
-                                        <Card.Title>{task.title}</Card.Title>
-                                        <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
-                                        <Card.Text className="mb-0 fs-6 fw-lighter">{formatDate(task.startTime)} - {formatDate(task.endTime)}
-                                        </Card.Text>
-                                        <div>
-                                        <Badge
-                                            bg={
-                                            task.priority === 'High'
-                                                ? 'danger'
-                                                : task.priority === 'Medium'
-                                                ? 'warning'
-                                                : 'secondary'
-                                            }
-                                            className="me-2"
-                                        >
-                                            {task.priority}
-                                        </Badge>
-
-                                        <Badge
-                                            bg={
-                                            task.status === 'Todo'
-                                                ? 'warning' 
-                                                : task.status === 'In Progress'
-                                                ? 'primary' 
-                                                : task.status === 'Completed'
-                                                ? 'success' 
-                                                : 'secondary'
-                                            }
-                                        >
-                                            {task.status}
-                                        </Badge>
-                                        </div>
-
-                                        {/* Edit and Delete Buttons */}
-                                        <div className="d-flex justify-content-end">
-                                            <Button
-                                                variant="outline-dark"
-                                                onClick={() => openEditModal(task)}
-                                                className="border-0 me-2"
-                                            >
-                                                <FaEdit className="icon-button"/>
-                                            </Button>
-                                            <Button
-                                                variant="outline-dark"
-                                                onClick={() => openDeleteModal(task._id)}
-                                                className="border-0 text-danger"
-                                            >
-                                                <FaTrashAlt className="icon-button" />
-                                            </Button>
-                                        </div>
-                                    </Card.Body>
-                                </Card>
+                        {tasks.length > 0 ? (
+                            tasks.map((task) => (
+                                <Col
+                                    xs={12}
+                                    sm={12}
+                                    md={12}
+                                    lg={12}
+                                    key={task._id}
+                                    className="mb-4 d-flex justify-content-center"
+                                >
+                                    <Card style={{ width: "100%" }}>
+                                        <Card.Body>
+                                        <Card.Title className="d-flex justify-content-between align-items-center">
+                                            <span>{task.title}</span>
+                                            <div>
+                                                <Badge
+                                                    bg={
+                                                        task.priority === "High"
+                                                            ? "danger"
+                                                            : task.priority === "Medium"
+                                                            ? "warning"
+                                                            : "secondary"
+                                                    }
+                                                    className="me-2"
+                                                >
+                                                    {task.priority}
+                                                </Badge>
+                                                <Badge
+                                                    bg={
+                                                        task.status === "Todo"
+                                                            ? "warning"
+                                                            : task.status === "In Progress"
+                                                            ? "primary"
+                                                            : task.status === "Completed"
+                                                            ? "success"
+                                                            : "secondary"
+                                                    }
+                                                >
+                                                    {task.status}
+                                                </Badge>
+                                            </div>
+                                        </Card.Title>
+                                            <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
+                                            <Card.Text className="mb-0 fs-6 fw-lighter">
+                                                {formatDate(task.startTime)} - {formatDate(task.endTime)}
+                                            </Card.Text>
+                                            <Card.Text className="d-flex justify-content-between align-items-center">
+                                                <span>
+                                                Estimate Hours: {task.estimatedTime}
+                                                </span>
+                                                {/* Edit and Delete Buttons */}
+                                                <div>
+                                                <Button
+                                                    variant="outline-dark"
+                                                    onClick={() => openEditModal(task)}
+                                                    className="border-0 me-2"
+                                                >
+                                                    <FaEdit className="icon-button" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline-dark"
+                                                    onClick={() => openDeleteModal(task._id)}
+                                                    className="border-0 text-danger"
+                                                >
+                                                    <FaTrashAlt className="icon-button" />
+                                                </Button>
+                                            </div>
+                                                </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))
+                        ) : (
+                            <Col xs={12} className="d-flex justify-content-center">
+                                <p className="text-muted fs-5">No tasks found</p>
                             </Col>
-                        ))}
+                        )}
                     </Row>
                 </Col>
             </Row>
@@ -525,9 +460,11 @@ export default function Task() {
                                 name="title"
                                 value={newTask.title}
                                 onChange={handleChange}
+                                isInvalid={!!errors.title}
                             />
+                            <Form.Control.Feedback type="invalid">{errors.title}</Form.Control.Feedback>
                         </Form.Group>
-                        <Form.Group controlId="taskDescription">
+                        <Form.Group controlId="taskDescription" className="mt-2">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
                                 as="textarea" rows={2}
@@ -537,7 +474,7 @@ export default function Task() {
                                 onChange={handleChange}
                             />
                         </Form.Group>
-                        <Form.Group controlId="taskPriority" className="mt-3">
+                        <Form.Group controlId="taskPriority" className="mt-2">
                             <Form.Label>Priority</Form.Label>
                             <Form.Control
                                 as="select"
@@ -550,54 +487,49 @@ export default function Task() {
                                 <option value="Low">Low</option>
                             </Form.Control>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStatus" className="mt-3">
-                            <Form.Label>Status</Form.Label>
+                        <Form.Group controlId="taskEstimatedTime" className="mt-2">
+                            <Form.Label>Estimate Hour</Form.Label>
                             <Form.Control
-                                as="select"
-                                name="status"
-                                value={newTask.status}
+                                type="number"
+                                name="estimatedTime"
+                                placeholder="Enter estimated hours"
+                                value={newTask.estimatedTime}
                                 onChange={handleChange}
-                            >
-                                <option value="Todo">To do</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                            </Form.Control>
+                                min="0"
+                                step="0.1"
+                                isInvalid={!!errors.estimatedTime}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.estimatedTime}</Form.Control.Feedback>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStartTime" className="mt-3">
+                        <Form.Group controlId="taskStartTime" className="mt-2">
                             <Form.Label>Start Date & Time</Form.Label>
-                            <div className="d-block">
-                                <DatePicker
-                                    selected={newTask.startTime}
-                                    onChange={handleStartDateChange}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                    className="form-control"
-                                />
-                            </div>
+                            <DatePicker
+                                selected={newTask.startTime}
+                                onChange={handleStartDateChange}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                className="form-control ms-2"
+                            />
                         </Form.Group>
-
-                        <Form.Group controlId="taskEndTime" className="mt-3">
+                        <Form.Group controlId="taskEndTime" className="mt-2">
                             <Form.Label>End Date & Time</Form.Label>
-                            <div className="d-block">
-                                <DatePicker
-                                    selected={newTask.endTime}
-                                    onChange={handleEndDateChange}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                    className="form-control"
-                                />
-                            </div>
+                            <DatePicker
+                                selected={newTask.endTime}
+                                onChange={handleEndDateChange}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                className="form-control ms-3"
+                            />
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleCreateTask}>
+                    <Button variant="primary" onClick={handleSubmit}>
                         Create Task
                     </Button>
                 </Modal.Footer>
             </Modal>
+
 
             {/* Modal for editing an existing task */}
             <Modal show={showEditModal} onHide={handleCloseEditModal} backdrop="static">
