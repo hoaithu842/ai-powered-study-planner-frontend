@@ -282,6 +282,7 @@ export default function Task() {
     return (
         <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
             <Row style={{padding: "20px"}}>
+
                 <Col xs={12} sm={12} md={6} lg={6} className="mb-4">
                 <div className="d-flex flex-column align-items-center">
                     {/* Add Task & Analyze with AI Buttons */}
@@ -444,7 +445,6 @@ export default function Task() {
                     </Row>
                 </Col>
             </Row>
-
             {/* Modal for creating a new task */}
             <Modal show={showCreateModal} onHide={handleCloseCreateModal} backdrop="static">
                 <Modal.Header closeButton>

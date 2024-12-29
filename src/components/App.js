@@ -10,37 +10,37 @@ import Profile from "./Profile";
 import Task from "./Task";
 import NavigationBar from './NavigationBar';
 import Schedule from "./Schedule";
+import {Navigate} from "react-router";
 
 function App() {
     return (
-        
-                <Router>
-                    <AuthProvider>
-                        <NavigationBar />
-                        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-                        <Routes>
-                            <Route path="/" element={<PrivateRoute/>}/>
-                            <Route path="/signup" element={<Signup/>}/>
-                            <Route path="/login" element={<Login/>}/>
-                            <Route path="/profile" element={<Profile/>}/>
-                            <Route path="/tasks" element={<Task/>}/>
-                            <Route path="/schedule" element={<Schedule/>}/>
-                        </Routes>
-                        </Container>
-                    </AuthProvider>
-                </Router>
+        <Router>
+            <AuthProvider>
+                <NavigationBar/>
+                <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
+                    <Routes>
+                        <Route path="/" element={<Homepage/>}/>
+                        <Route path="/signup" element={<Signup/>}/>
+                        <Route path="/login" element={<Login/>}/>
+                        <Route path="/profile" element={<PrivateRoute><Profile/></PrivateRoute>}/>
+                        <Route path="/tasks" element={<PrivateRoute><Task/></PrivateRoute>}/>
+                        <Route path="/schedule" element={<PrivateRoute><Schedule/></PrivateRoute>}/>
+                        <Route path="/dashboard" element={<PrivateRoute><Dashboard/></PrivateRoute>}/>
+                    </Routes>
+                </Container>
+            </AuthProvider>
+        </Router>
     );
 }
 
-// PrivateRoute Component to handle the conditional rendering based on user auth status
-function PrivateRoute() {
+function PrivateRoute({children}) {
     const {currentUser} = useAuthContext(); // Use the AuthContext to get the current user
 
-    if (currentUser) {
-        return <Dashboard/>;
-    } else {
-        return <Homepage/>;
+    if (currentUser && currentUser.emailVerified) {
+        return children;
     }
+
+    return <Navigate to="/login" replace/>;
 }
 
 export default App;

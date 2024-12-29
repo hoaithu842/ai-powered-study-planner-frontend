@@ -22,6 +22,19 @@ export default function AuthProvider({children}) {
         return auth.signInWithEmailAndPassword(email, password);
     }
 
+    function loginWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        return auth.signInWithPopup(provider)
+            .then((result) => {
+                const user = result.user;
+                return user.getIdToken(); // Get the token after Google login
+            })
+            .catch((error) => {
+                setError(error.message); // Set the error message for Google login failure
+                throw error; // Re-throw error for further handling
+            });
+    }
+
     function logout() {
         return auth.signOut();
     }
@@ -48,7 +61,8 @@ export default function AuthProvider({children}) {
         signup,       // Signup function
         logout,       // Logout function
         error,        // Error state for handling any authentication errors
-        setError      // Function to set error state
+        setError,      // Function to set error state
+        loginWithGoogle, // Login With Google function
     };
 
     return (

@@ -6,19 +6,19 @@ import {useNavigate} from "react-router-dom";
 import {Link} from "react-router";
 import firebase from "firebase/compat/app";
 import 'firebase/compat/auth';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default function Signup() {
     const emailRef = useRef();
     const passwordRef = useRef();
     const passwordConfirmationRef = useRef();
-    const {signup, currentUser} = useAuthContext();
+    const {signup, currentUser, loginWithGoogle} = useAuthContext();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && currentUser.emailVerified) {
             navigate('/');
         }
     }, [currentUser, navigate]);
@@ -33,47 +33,61 @@ export default function Signup() {
         try {
             setError('');
             setLoading(true);
+
             await signup(emailRef.current.value, passwordRef.current.value);
-            const user = await firebase.auth().currentUser;
-            const token = await user.getIdToken();  // Get the Firebase token
-            // Call your API after the login is successful
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
-                headers: {
-                    Authorization: `Bearer ${token}`  // Include the token in the Authorization header
-                },
-            });
-            if (res.data && res.data) {
-                console.log(res.data);
-                // const userData = res.data.User;
-                // console.log('User data:', userData);
-                //
-                // // Check if 'should_update' is true
-                // if (userData.should_update) {
-                //     // If the user needs to update their profile, navigate to profile page
-                //     navigate('/profile');
-                // } else {
-                //     // If the user is all set, navigate to the homepage
-                //     navigate('/');
-                // }
+
+            const user = firebase.auth().currentUser;
+            if (user) {
+                await user.sendEmailVerification();
             }
-            // Navigate to the home page after successful signup
-            navigate('/');
-        } catch {
+
+            await firebase.auth().signOut();
+            alert("Sign-up successful! Please check your email to verify your account.");
+            navigate('/login');
+        } catch (error) {
+            console.error("Signup failed:", error);
             setError('Failed to create an account');
         }
         setLoading(false);
     }
 
-    const loginWithGoogle = () => {
-        firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
-            .then((userCredential) => {
-                if (userCredential) {
+    const handleGoogleLogin = async () => {
+        try {
+            const token = await loginWithGoogle();
+            console.log("Google login successful, token:", token);
+
+            // Call API after successful Google login
+            await handleApiCall(token);
+        } catch (err) {
+            setError("Failed to login with Google.");
+            console.error("Google login error:", err);
+        }
+    };
+
+    const handleApiCall = async (token) => {
+        try {
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+            });
+
+            console.log("API response:", res.data);
+
+            if (res.data && res.data.User) {
+                const userData = res.data.User;
+                console.log('User data:', userData);
+
+                if (userData.should_update) {
+                    navigate('/profile');
+                } else {
                     navigate('/');
                 }
-            })
-            .catch((error) => {
-                console.error("Error with Google signup: ", error);
-            });
+            }
+        } catch (error) {
+            setError("Failed to fetch user data from the API.");
+            console.error("API call error:", error);
+        }
     };
 
     return (
@@ -108,7 +122,7 @@ export default function Signup() {
 
                 <div className="w-100 text-center mt-3">
                     <GoogleLoginButton
-                        onClick={loginWithGoogle}
+                        onClick={handleGoogleLogin}
                         style={{width: "100%"}}
                     />
                 </div>
