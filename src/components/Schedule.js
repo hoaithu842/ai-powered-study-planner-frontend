@@ -8,7 +8,6 @@ import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
 import Timer from "./Timer";
 import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -52,6 +51,7 @@ const Schedule = () => {
         start: new Date(task.startTime),
         end: new Date(task.endTime),
         status: task.status || "Todo",
+        priority: task.priority,
       }));
 
       setTasks(fetchedTasks);
@@ -150,16 +150,16 @@ const Schedule = () => {
       
       {/* Modal to display the Timer when a task is selected */}
       {selectedTask && showModal && (
-        <Modal show={showModal} onHide={handleCloseModal} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
-          <Modal.Body>
-            <Timer
-              task={selectedTask}
-              onSessionEnd={() => {
-                setShowModal(false); // Close modal when session ends
-                alert("Session completed!");
-              }}
-            />
-          </Modal.Body>
+        <Modal show={showModal} onHide={handleCloseModal} aria-labelledby="contained-modal-title-vcenter" centered>
+            <Modal.Body>
+              <Timer
+                task={selectedTask}
+                onSessionEnd={() => {
+                  setShowModal(false); // Close modal when session ends
+                  alert("Session completed!");
+                }}
+              />
+            </Modal.Body>
         </Modal>
       )}
     </div>
