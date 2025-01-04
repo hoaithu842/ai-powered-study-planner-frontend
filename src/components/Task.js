@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, DropdownButton, Dropdown} from "react-bootstrap";
+import {Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, Spinner} from "react-bootstrap";
 import {FaEdit, FaTrashAlt} from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,6 +17,8 @@ export default function Task() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [feedback, setFeedback] = useState("");
+    const [analyzeLoading, setAnalyzeLoading] = useState(false);
+
     const priorityOrder = {
         High: 1,
         Medium: 2,
@@ -344,43 +346,63 @@ export default function Task() {
                                 </Button>
                             </Col>
                             <Col xs={6}>
-                                <Button
-                                    variant="info"
-                                    onClick={() => fetchFeedback()}
-                                    style={{width: "100%"}}
-                                >
-                                    Analyze with AI
-                                </Button>
+                            <Button
+                                variant="info"
+                                onClick={async () => {
+                                    setAnalyzeLoading(true);
+                                    try {
+                                        await fetchFeedback();
+                                    } catch (error) {
+                                        console.error("Error analyzing AI:", error);
+                                    } finally {
+                                        setAnalyzeLoading(false);
+                                    }
+                                }}
+                                style={{ width: "100%" }}
+                                disabled={analyzeLoading}
+                            >
+                                {analyzeLoading ? (
+                                    <span>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Analyzing...
+                                    </span>
+                                ) : (
+                                    "Analyze with AI"
+                                )}
+                            </Button>
                             </Col>
                         </Row>
                         {/* Filters */}
                         <Row className="mb-3 w-100">
                             <Col xs={12} sm={6}>
-                                <DropdownButton
-                                    variant="outline-dark"
-                                    title={priorityFilter ? `Priority: ${priorityFilter}` : "All Priority"}
-                                    style={{width: 'auto'}}
-                                    onSelect={handlePriorityFilterChange}
+                                <Form.Select
+                                    value={priorityFilter || "All Priority"}
+                                    onChange={(e) => handlePriorityFilterChange(e.target.value)}
                                 >
-                                    <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
-                                    <Dropdown.Item eventKey="High">High</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Medium">Medium</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Low">Low</Dropdown.Item>
-                                </DropdownButton>
+                                    <option value="All Priority">All Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </Form.Select>
                             </Col>
                             <Col xs={12} sm={6}>
-                                <DropdownButton
-                                    variant="outline-dark"
-                                    title={statusFilter ? `Status: ${statusFilter}` : "All Status"}
-                                    style={{width: "100%"}}
-                                    onSelect={handleStatusFilterChange}
+                                <Form.Select
+                                    value={statusFilter || "All Status"}
+                                    onChange={(e) => handleStatusFilterChange(e.target.value)}
                                 >
-                                    <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Todo">Todo</Dropdown.Item>
-                                    <Dropdown.Item eventKey="In Progress">In Progress</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Completed">Completed</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Completed">Expired</Dropdown.Item>
-                                </DropdownButton>
+                                    <option value="All Status">All Status</option>
+                                    <option value="Todo">Todo</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Completed">Expired</option>
+                                </Form.Select>
                             </Col>
                         </Row>
                         {/* Sorting Buttons  */}
@@ -424,11 +446,11 @@ export default function Task() {
                 <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list">
                 {loading ? (
                     <div className="d-flex justify-content-center align-items-center h-100">
-                        <p>Loading...</p>
+                        <h3>Loading...</h3>
                     </div>
                 ) : error ? (
                     <div className="d-flex justify-content-center align-items-center h-100">
-                        <div className="alert alert-danger">{error}</div>
+                        <Alert>{error}</Alert>
                     </div>
                 ) : (
                     <Row>
