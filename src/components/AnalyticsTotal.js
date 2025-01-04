@@ -7,20 +7,19 @@ import {
     LinearScale,
     PointElement,
     LineElement,
-    ArcElement,   // ✅ Add this
+    ArcElement,
     Title,
     Tooltip,
     Legend
 } from 'chart.js';
 import axios from 'axios';
 
-// ✅ Register ArcElement
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
-    ArcElement,    // ✅ Register here
+    ArcElement,
     Title,
     Tooltip,
     Legend
