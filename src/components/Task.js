@@ -40,6 +40,7 @@ export default function Task() {
 
     const [priorityFilter, setPriorityFilter] = useState(null);
     const [statusFilter, setStatusFilter] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         const fetchFilteredTasks = async () => {
@@ -54,15 +55,18 @@ export default function Task() {
                 if (statusFilter && statusFilter !== "All Status") {
                     params.append("status", statusFilter);
                 }
+                if (searchQuery.trim()) {
+                    params.append("searchQuery", searchQuery);
+                }
 
-                console.log(`Calling API with query: ${params.toString()}`);
+                //console.log(`Calling API with query: ${params.toString()}`);
                 // Call the API with the constructed query
                 const response = await axios.get(`${process.env.REACT_APP_API_URL}/tasks?${params.toString()}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log(`Received data: ${response.data}`);
+                //console.log(`Received data: ${response.data}`);
 
                 setTasks(response.data);
             } catch (error) {
@@ -73,10 +77,10 @@ export default function Task() {
             }
         };
 
-        if (priorityFilter !== null || statusFilter !== null) {
+        if (priorityFilter !== null || statusFilter !== null || searchQuery) {
             fetchFilteredTasks();
         }
-    }, [priorityFilter, statusFilter, token]); // Include dependencies
+    }, [priorityFilter, statusFilter, searchQuery, token]); // Include dependencies
 
     const handlePriorityFilterChange = (priority) => {
         setPriorityFilter(priority);
@@ -323,193 +327,6 @@ export default function Task() {
         });
     };
 
-    // If loading, show a loading message
-    if (loading) {
-        return (
-            <Container style={{minHeight: '100vh'}} className="justify-content-center mt-4">
-                <Row style={{margin: "0 10vw"}}>
-                    <Col xs={12} sm={12} md={4} lg={5} className="mb-4">
-                        <div className="d-flex flex-column justify-content-center align-items-center">
-                            {/* Add Task & Analyze with AI Buttons */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={6}>
-                                    <Button
-                                        variant="success"
-                                        onClick={() => setShowCreateModal(true)}
-                                        style={{width: "100%"}}
-                                    >
-                                        + Add Task
-                                    </Button>
-                                </Col>
-                                <Col xs={6}>
-                                    <Button
-                                        variant="info"
-                                        onClick={() => fetchFeedback()}
-                                        style={{width: "100%"}}
-                                    >
-                                        Analyze with AI
-                                    </Button>
-                                </Col>
-                            </Row>
-                            {/* Filters */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={12} sm={6}>
-                                    <DropdownButton
-                                        variant="outline-dark"
-                                        title={priorityFilter ? `Priority: ${priorityFilter}` : "All Priority"}
-                                        style={{width: 'auto'}}
-                                        onSelect={handlePriorityFilterChange}
-                                    >
-                                        <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
-                                        <Dropdown.Item eventKey="High">High</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Medium">Medium</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Low">Low</Dropdown.Item>
-                                    </DropdownButton>
-                                </Col>
-                                <Col xs={12} sm={6}>
-                                    <DropdownButton
-                                        variant="outline-dark"
-                                        title={statusFilter ? `Status: ${statusFilter}` : "All Status"}
-                                        style={{width: "100%"}}
-                                        onSelect={handleStatusFilterChange}
-                                    >
-                                        <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Todo">Todo</Dropdown.Item>
-                                        <Dropdown.Item eventKey="In Progress">In Progress</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Completed">Completed</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Completed">Expired</Dropdown.Item>
-                                    </DropdownButton>
-                                </Col>
-                            </Row>
-                            {/* Sorting Buttons  */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={6}>
-                                    <Button variant="dark" style={{width: "100%"}}
-                                            onClick={sortTasksByPriority}>
-                                        Sort by Priority
-                                    </Button>
-                                </Col>
-                                <Col xs={6}>
-                                    <Button variant="dark" style={{width: "100%"}} onClick={sortTasksByStatus}>
-                                        Sort by Status
-                                    </Button>
-                                </Col>
-                            </Row>
-
-                            {/* Feedback Display */}
-                            {feedback && (
-                                <Row className="mb-3">
-                                    <Col xs={12}>
-                                        <div className="alert alert-info feedback-area">
-                                            <ReactMarkdown>{feedback}</ReactMarkdown>
-                                        </div>
-                                    </Col>
-                                </Row>
-                            )}
-                        </div> 
-                    </Col>
-                    <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list d-flex justify-content-center">
-                        <h3>Loading...</h3>
-                    </Col>
-                </Row>
-            </Container>
-        );
-    }
-
-    // If there was an error fetching tasks
-    if (error) {
-        return (
-            <Container style={{minHeight: '100vh'}} className="justify-content-center mt-4">
-                <Row style={{margin: "0 10vw"}}>
-                    <Col xs={12} sm={12} md={4} lg={5} className="mb-4">
-                        <div className="d-flex flex-column justify-content-center align-items-center">
-                            {/* Add Task & Analyze with AI Buttons */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={6}>
-                                    <Button
-                                        variant="success"
-                                        onClick={() => setShowCreateModal(true)}
-                                        style={{width: "100%"}}
-                                    >
-                                        + Add Task
-                                    </Button>
-                                </Col>
-                                <Col xs={6}>
-                                    <Button
-                                        variant="info"
-                                        onClick={() => fetchFeedback()}
-                                        style={{width: "100%"}}
-                                    >
-                                        Analyze with AI
-                                    </Button>
-                                </Col>
-                            </Row>
-                            {/* Filters */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={12} sm={6}>
-                                    <DropdownButton
-                                        variant="outline-dark"
-                                        title={priorityFilter ? `Priority: ${priorityFilter}` : "All Priority"}
-                                        style={{width: "100%"}}
-                                        onSelect={handlePriorityFilterChange}
-                                    >
-                                        <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
-                                        <Dropdown.Item eventKey="High">High</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Medium">Medium</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Low">Low</Dropdown.Item>
-                                    </DropdownButton>
-                                </Col>
-                                <Col xs={12} sm={6}>
-                                    <DropdownButton
-                                        variant="outline-dark"
-                                        title={statusFilter ? `Status: ${statusFilter}` : "All Status"}
-                                        style={{width: "100%"}}
-                                        onSelect={handleStatusFilterChange}
-                                    >
-                                        <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Todo">Todo</Dropdown.Item>
-                                        <Dropdown.Item eventKey="In Progress">In Progress</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Completed">Completed</Dropdown.Item>
-                                        <Dropdown.Item eventKey="Completed">Expired</Dropdown.Item>
-                                    </DropdownButton>
-                                </Col>
-                            </Row>
-                            {/* Sorting Buttons  */}
-                            <Row className="mb-3 w-100">
-                                <Col xs={6}>
-                                    <Button variant="dark" style={{width: "100%"}}
-                                            onClick={sortTasksByPriority}>
-                                        Sort by Priority
-                                    </Button>
-                                </Col>
-                                <Col xs={6}>
-                                    <Button variant="dark" style={{width: "100%"}} onClick={sortTasksByStatus}>
-                                        Sort by Status
-                                    </Button>
-                                </Col>
-                            </Row>
-
-                            {/* Feedback Display */}
-                            {feedback && (
-                                <Row className="mb-3">
-                                    <Col xs={12}>
-                                        <div className="alert alert-info feedback-area">
-                                            <ReactMarkdown>{feedback}</ReactMarkdown>
-                                        </div>
-                                    </Col>
-                                </Row>
-                            )}
-                        </div>
-
-                    </Col>
-                    <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list d-flex justify-content-center">
-                        <Alert variant="danger">{error}</Alert>
-                    </Col>
-                </Row>
-            </Container>
-        );
-    }
-
     return (
         <Container style={{minHeight: '100vh'}} className="justify-content-between mt-4">
             <Row style={{margin: "0 10vw"}}>
@@ -580,7 +397,17 @@ export default function Task() {
                                 </Button>
                             </Col>
                         </Row>
-
+                        {/* Search Bar */}
+                        <Row className="mb-3 w-100">
+                            <Col xs={12}>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Search tasks..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </Col>
+                        </Row>
                         {/* Feedback Display */}
                         {feedback && (
                             <Row className="mb-3">
@@ -595,6 +422,15 @@ export default function Task() {
 
                 </Col>
                 <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list">
+                {loading ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <p>Loading...</p>
+                    </div>
+                ) : error ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <div className="alert alert-danger">{error}</div>
+                    </div>
+                ) : (
                     <Row>
                         {tasks.length > 0 ? (
                             tasks.map((task) => (
@@ -674,6 +510,7 @@ export default function Task() {
                             </Col>
                         )}
                     </Row>
+                )}
                 </Col>
             </Row>
             {/* Modal for creating a new task */}
