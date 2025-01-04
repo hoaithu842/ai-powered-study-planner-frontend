@@ -5,6 +5,10 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { useAuthContext } from "../contexts/AuthContext";
 import axios from "axios";
 import AnalyticsTotal from "../components/AnalyticsTotal";
+<<<<<<< Updated upstream
+=======
+import AnalyticsFeedback from "../components/AnalyticsFeedback";
+>>>>>>> Stashed changes
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -101,8 +105,13 @@ export default function Analytics() {
                 </Col>
             </Row>
 
+<<<<<<< Updated upstream
             {/* Render the new AnalyticsTotal component */}
             <AnalyticsTotal token={token} />
+=======
+            <AnalyticsTotal token={token} />
+            <AnalyticsFeedback token={token} />
+>>>>>>> Stashed changes
         </Container>
     );
 }
