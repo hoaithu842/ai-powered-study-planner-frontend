@@ -4,11 +4,8 @@ import { Card, Container, Row, Col, Alert } from 'react-bootstrap';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { useAuthContext } from "../contexts/AuthContext";
 import axios from "axios";
-import AnalyticsTotal from "../components/AnalyticsTotal";
-<<<<<<< Updated upstream
-=======
-import AnalyticsFeedback from "../components/AnalyticsFeedback";
->>>>>>> Stashed changes
+import AnalyticsTotal from "./AnalyticsTotal.js";
+import AnalyticsFeedback from "./AnalyticsFeedback.js";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -105,13 +102,8 @@ export default function Analytics() {
                 </Col>
             </Row>
 
-<<<<<<< Updated upstream
-            {/* Render the new AnalyticsTotal component */}
-            <AnalyticsTotal token={token} />
-=======
             <AnalyticsTotal token={token} />
             <AnalyticsFeedback token={token} />
->>>>>>> Stashed changes
         </Container>
     );
 }
