@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Line } from 'react-chartjs-2';
 import { Card, Container, Row, Col, Alert } from 'react-bootstrap';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { useAuthContext } from "../contexts/AuthContext";
 import axios from "axios";
+import AnalyticsTotal from "../components/AnalyticsTotal";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -16,12 +16,11 @@ export default function Analytics() {
 
     useEffect(() => {
         if (token) {
-            console.log(token)
             fetchAnalytics(token);
         }
     }, [token]);
 
-    // Fetch analytics data from the API
+    // Fetch focus analytics
     const fetchAnalytics = async (token) => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/analytics/focus`, {
@@ -29,7 +28,6 @@ export default function Analytics() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log(response.data);
             setAnalytics(response.data);
         } catch (err) {
             setError('Failed to fetch analytics.');
@@ -38,38 +36,6 @@ export default function Analytics() {
         }
     };
 
-
-    // Chart data for daily focus time
-    const dailyFocusChartData = {
-        labels: Object.keys(analytics?.dailyFocusTime || {}),
-        datasets: [
-            {
-                label: 'Daily Focus Time (minutes)',
-                data: Object.values(analytics?.dailyFocusTime || {}),
-                borderColor: '#4e73df',
-                backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                fill: true,
-                tension: 0.3,
-            },
-        ],
-    };
-
-    // Chart data for weekly focus time
-    const weeklyFocusChartData = {
-        labels: Object.keys(analytics?.weeklyFocusTime || {}),
-        datasets: [
-            {
-                label: 'Weekly Focus Time (minutes)',
-                data: Object.values(analytics?.weeklyFocusTime || {}),
-                borderColor: '#1cc88a',
-                backgroundColor: 'rgba(28, 200, 138, 0.1)',
-                fill: true,
-                tension: 0.3,
-            },
-        ],
-    };
-
-    // Handle loading state
     if (loading) {
         return (
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -78,7 +44,6 @@ export default function Analytics() {
         );
     }
 
-    // Handle error state
     if (error) {
         return (
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -94,7 +59,21 @@ export default function Analytics() {
                     <Card>
                         <Card.Body>
                             <Card.Title>Daily Focus Time</Card.Title>
-                            <Line data={dailyFocusChartData} />
+                            <Line
+                                data={{
+                                    labels: Object.keys(analytics?.dailyFocusTime || {}),
+                                    datasets: [
+                                        {
+                                            label: 'Daily Focus Time (minutes)',
+                                            data: Object.values(analytics?.dailyFocusTime || {}),
+                                            borderColor: '#4e73df',
+                                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                                            fill: true,
+                                            tension: 0.3,
+                                        },
+                                    ],
+                                }}
+                            />
                         </Card.Body>
                     </Card>
                 </Col>
@@ -105,7 +84,7 @@ export default function Analytics() {
                     <Card>
                         <Card.Body>
                             <Card.Title>Task Progress</Card.Title>
-                            {analytics?.taskProgress?.map((task, index) => (
+                            {analytics?.taskProgress?.map((task) => (
                                 <Card key={task.taskId} className="mb-3">
                                     <Card.Body>
                                         <Card.Title>{task.taskTitle}</Card.Title>
@@ -121,6 +100,9 @@ export default function Analytics() {
                     </Card>
                 </Col>
             </Row>
+
+            {/* Render the new AnalyticsTotal component */}
+            <AnalyticsTotal token={token} />
         </Container>
     );
 }

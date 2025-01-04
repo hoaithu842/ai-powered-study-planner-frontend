@@ -1,15 +1,15 @@
-import React, {useState, useEffect} from "react";
-import {Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, DropdownButton, Dropdown} from "react-bootstrap";
-import {FaEdit, FaTrashAlt} from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, DropdownButton, Dropdown } from "react-bootstrap";
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {useAuthContext} from "../contexts/AuthContext";
+import { useAuthContext } from "../contexts/AuthContext";
 import ReactMarkdown from 'react-markdown';
 
 export default function Task() {
-    const {token} = useAuthContext(); // Get token from context
+    const { token } = useAuthContext(); // Get token from context
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -155,7 +155,7 @@ export default function Task() {
 
     // Handle change in task input fields
     const handleChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setNewTask({
             ...newTask,
             [name]: value,
@@ -179,7 +179,7 @@ export default function Task() {
     });
     const validateForm = () => {
         let valid = true;
-        const newErrors = {title: "", estimatedTime: 0};
+        const newErrors = { title: "", estimatedTime: 0 };
 
         // Validate Title
         if (!newTask.title.trim()) {
@@ -254,7 +254,7 @@ export default function Task() {
         setEditingTask(task);
         const startTime = new Date(task.startTime);
         const endTime = new Date(task.endTime);
-        setEditingTask({...task, startTime: startTime, endTime: endTime});
+        setEditingTask({ ...task, startTime: startTime, endTime: endTime });
         setShowEditModal(true);
     };
     const handleCloseEditModal = () => {
@@ -303,7 +303,7 @@ export default function Task() {
     // If loading, show a loading message
     if (loading) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
+            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
                 <h3>Loading...</h3>
             </Container>
         );
@@ -312,15 +312,15 @@ export default function Task() {
     // If there was an error fetching tasks
     if (error) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
+            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
                 <Alert variant="danger">{error}</Alert>
             </Container>
         );
     }
 
     return (
-        <Container style={{minHeight: '100vh'}} className="justify-content-center mt-4">
-            <Row style={{padding: "20px"}}>
+        <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
+            <Row style={{ padding: "20px" }}>
 
                 <Col xs={12} sm={12} md={6} lg={6} className="mb-4">
                     <div className="d-flex flex-column align-items-center">
@@ -330,7 +330,7 @@ export default function Task() {
                                 <Button
                                     variant="success"
                                     onClick={() => setShowCreateModal(true)}
-                                    style={{width: "100%"}}
+                                    style={{ width: "100%" }}
                                 >
                                     + Add Task
                                 </Button>
@@ -339,7 +339,7 @@ export default function Task() {
                                 <Button
                                     variant="info"
                                     onClick={() => fetchFeedback()}
-                                    style={{width: "100%"}}
+                                    style={{ width: "100%" }}
                                 >
                                     Analyze with AI
                                 </Button>
@@ -351,7 +351,7 @@ export default function Task() {
                                 <DropdownButton
                                     variant="outline-secondary"
                                     title={priorityFilter ? `Priority: ${priorityFilter}` : "Priority (Filter)"}
-                                    style={{width: "100%"}}
+                                    style={{ width: "100%" }}
                                     onSelect={handlePriorityFilterChange}
                                 >
                                     <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
@@ -364,7 +364,7 @@ export default function Task() {
                                 <DropdownButton
                                     variant="outline-secondary"
                                     title={statusFilter ? `Status: ${statusFilter}` : "Status (Filter)"}
-                                    style={{width: "100%"}}
+                                    style={{ width: "100%" }}
                                     onSelect={handleStatusFilterChange}
                                 >
                                     <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
@@ -378,13 +378,13 @@ export default function Task() {
                         {/* Sorting Buttons  */}
                         <Row className="mb-3 w-100">
                             <Col xs={6}>
-                                <Button variant="outline-secondary" style={{width: "100%"}}
-                                        onClick={sortTasksByPriority}>
+                                <Button variant="outline-secondary" style={{ width: "100%" }}
+                                    onClick={sortTasksByPriority}>
                                     Sort By Priority
                                 </Button>
                             </Col>
                             <Col xs={6}>
-                                <Button variant="outline-secondary" style={{width: "100%"}} onClick={sortTasksByStatus}>
+                                <Button variant="outline-secondary" style={{ width: "100%" }} onClick={sortTasksByStatus}>
                                     By Status
                                 </Button>
                             </Col>
@@ -415,7 +415,7 @@ export default function Task() {
                                     key={task._id}
                                     className="mb-4 d-flex justify-content-center"
                                 >
-                                    <Card style={{width: "100%"}}>
+                                    <Card style={{ width: "100%" }}>
                                         <Card.Body>
                                             <Card.Title className="d-flex justify-content-between align-items-center">
                                                 <span>{task.title}</span>
@@ -453,7 +453,7 @@ export default function Task() {
                                             </Card.Text>
                                             <Card.Text className="d-flex justify-content-between align-items-center">
                                                 <span>
-                                                Estimate Hours: {task.estimatedTime}
+                                                    Estimate Hours: {task.estimatedTime}
                                                 </span>
                                                 {/* Edit and Delete Buttons */}
                                                 <div>
@@ -462,14 +462,14 @@ export default function Task() {
                                                         onClick={() => openEditModal(task)}
                                                         className="border-0 me-2"
                                                     >
-                                                        <FaEdit className="icon-button"/>
+                                                        <FaEdit className="icon-button" />
                                                     </Button>
                                                     <Button
                                                         variant="outline-dark"
                                                         onClick={() => openDeleteModal(task._id)}
                                                         className="border-0 text-danger"
                                                     >
-                                                        <FaTrashAlt className="icon-button"/>
+                                                        <FaTrashAlt className="icon-button" />
                                                     </Button>
                                                 </div>
                                             </Card.Text>
@@ -583,7 +583,7 @@ export default function Task() {
                                 placeholder="Enter task title"
                                 name="title"
                                 value={editingTask ? editingTask.title : ""}
-                                onChange={(e) => setEditingTask({...editingTask, title: e.target.value})}
+                                onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
                             />
                         </Form.Group>
                         <Form.Group controlId="taskDescription">
@@ -593,7 +593,7 @@ export default function Task() {
                                 placeholder="Enter task description"
                                 name="description"
                                 value={editingTask ? editingTask.description : ""}
-                                onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
+                                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
                             />
                         </Form.Group>
                         <Form.Group controlId="taskPriority" className="mt-3">
@@ -602,7 +602,7 @@ export default function Task() {
                                 as="select"
                                 name="priority"
                                 value={editingTask ? editingTask.priority : ""}
-                                onChange={(e) => setEditingTask({...editingTask, priority: e.target.value})}
+                                onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
                             >
                                 <option value="High">High</option>
                                 <option value="Medium">Medium</option>
@@ -616,7 +616,7 @@ export default function Task() {
                                 as="select"
                                 name="status"
                                 value={editingTask ? editingTask.status : ""}
-                                onChange={(e) => setEditingTask({...editingTask, status: e.target.value})}
+                                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
                             >
                                 <option value="Todo">To do</option>
                                 <option value="In Progress">In Progress</option>
@@ -629,7 +629,7 @@ export default function Task() {
                             <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.startTime : new Date()}
-                                    onChange={(date) => setEditingTask({...editingTask, startTime: date})}
+                                    onChange={(date) => setEditingTask({ ...editingTask, startTime: date })}
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
@@ -642,7 +642,7 @@ export default function Task() {
                             <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.endTime : new Date()}
-                                    onChange={(date) => setEditingTask({...editingTask, endTime: date})}
+                                    onChange={(date) => setEditingTask({ ...editingTask, endTime: date })}
                                     showTimeSelect
                                     dateFormat="Pp"
                                     className="form-control"
