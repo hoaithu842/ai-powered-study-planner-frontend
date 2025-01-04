@@ -166,12 +166,30 @@ export default function Task() {
             ...prevState,
             startTime: date,
         }));
+
+        if (date && newTask.endTime && date >= newTask.endTime) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                endTime: "End time must be after start time.",
+            }));
+        } else {
+            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+        }
     };
     const handleEndDateChange = (date) => {
         setNewTask((prevState) => ({
             ...prevState,
             endTime: date,
         }));
+
+        if (date && newTask.startTime && date <= newTask.startTime) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                endTime: "End time must be after start time.",
+            }));
+        } else {
+            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+        }
     };
     const [errors, setErrors] = useState({
         title: "",
@@ -189,11 +207,16 @@ export default function Task() {
 
         // Validate Estimate Hour
         const estimatedTime = parseFloat(newTask.estimatedTime);
-        if (!newTask.estimatedTime.trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
+        if (!String(newTask.estimatedTime).trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
             newErrors.estimatedTime = "Estimate hour must be a positive number.";
             valid = false;
         }
 
+        // Validate Start and End Time
+        if (newTask.endTime <= newTask.startTime) {
+            newErrors.endTime = "End time must be after start time.";
+            valid = false;
+        }
         setErrors(newErrors);
         return valid;
     };
@@ -219,8 +242,8 @@ export default function Task() {
             setNewTask({
                 title: "",
                 description: "",
-                priority: "",
-                status: "",
+                priority: "Medium",
+                status: "Todo",
                 estimatedTime: 0,
                 startTime: new Date(),
                 endTime: new Date()
@@ -303,7 +326,7 @@ export default function Task() {
     // If loading, show a loading message
     if (loading) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
+            <Container style={{minHeight: '100vh'}} className="justify-content-center mt-4">
                 <h3>Loading...</h3>
             </Container>
         );
@@ -321,7 +344,6 @@ export default function Task() {
     return (
         <Container style={{minHeight: '100vh'}} className="justify-content-center mt-4">
             <Row style={{padding: "20px"}}>
-
                 <Col xs={12} sm={12} md={6} lg={6} className="mb-4">
                     <div className="d-flex flex-column align-items-center">
                         {/* Add Task & Analyze with AI Buttons */}
@@ -558,9 +580,11 @@ export default function Task() {
                                 onChange={handleEndDateChange}
                                 showTimeSelect
                                 dateFormat="Pp"
-                                className="form-control ms-3"
+                                className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
                             />
+                            {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
+
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
