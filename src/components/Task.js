@@ -125,6 +125,7 @@ export default function Task() {
         endTime: new Date(),
     });
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
     const [taskToDelete, setTaskToDelete] = useState(null);
 
     const navigate = useNavigate();
@@ -298,7 +299,6 @@ export default function Task() {
             hour12: true
         });
     };
-
 
     // If loading, show a loading message
     if (loading) {
@@ -569,8 +569,6 @@ export default function Task() {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-
             {/* Modal for editing an existing task */}
             <Modal show={showEditModal} onHide={handleCloseEditModal} backdrop="static">
                 <Modal.Header closeButton>
@@ -659,7 +657,6 @@ export default function Task() {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
             {/* Modal for delete task */}
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
                 <Modal.Header closeButton>

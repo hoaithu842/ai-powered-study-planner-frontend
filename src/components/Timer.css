@@ -1,0 +1,43 @@
+/* Timer.css */
+  
+  .timer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .timer-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  .timer-date {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .timer-badge {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .timer-settings {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  
+  .timer-controls {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  
+  .timer-clock {
+    font-size: 30px;;
+  }
+
+  
