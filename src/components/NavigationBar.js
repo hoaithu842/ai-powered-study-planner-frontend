@@ -2,6 +2,8 @@ import React from 'react';
 import { Navbar, Nav, Container, Button, Row, Col } from 'react-bootstrap';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
+import logo from '../assets/logo64.png';
+
 
 function NavigationBar() {
     const { currentUser, logout } = useAuthContext();
@@ -15,7 +17,7 @@ function NavigationBar() {
         currentUser && (
             <Navbar bg="light" data-bs-theme="light" sticky='top' expand='md'>
                 <Container>
-                    <Navbar.Brand as={Link} to="/" className='me-auto'>Study Planner</Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/" className='navbar-brand'><img src={logo}/>AI-Powered Study Planner</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" style={{ width: "auto" }}/>
                     <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                         <Nav>

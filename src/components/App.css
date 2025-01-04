@@ -132,4 +132,28 @@ h2 {
   align-items: center;
   justify-content: center;
 }
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
 
+.navbar-brand img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.navbar-brand:hover {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.tasks-list {
+  height: 80vh;
+  overflow-y: auto;
+  border: 1px solid #000;
+  padding: 1rem;
+}

@@ -29,7 +29,6 @@ const Schedule = () => {
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
 
   const { token } = useAuthContext();
-  
   useEffect(() => {
     if (token) {
       fetchTasks(token);
@@ -149,7 +148,6 @@ const Schedule = () => {
         style={{ height: "100%", width: "100%" }}
         eventPropGetter={eventStyleGetter}
       />
-      
       {/* Modal to display the Timer when a task is selected */}
       {selectedTask && showModal && (
         <Modal show={showModal} onHide={handleCloseModal} aria-labelledby="contained-modal-title-vcenter" centered>
