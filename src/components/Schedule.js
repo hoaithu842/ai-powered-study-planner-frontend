@@ -114,13 +114,15 @@ const Schedule = () => {
   const eventStyleGetter = (event) => {
     let backgroundColor;
     if (event.status === "Expired") {
-      backgroundColor = "#f76c6c";
+      backgroundColor = "#ffb3ba";
     } else if (event.status === "In Progress") {
-      backgroundColor = "#6c9ff7";
+      backgroundColor = "#bae1ff";
+    } else if (event.status === "Completed") {
+      backgroundColor = "#baffc9";
     } else {
-      backgroundColor = "#6cf76c";
+      backgroundColor = "#ffffba";
     }
-    return { style: { backgroundColor, color: "white", borderRadius: "5px" } };
+    return { style: { backgroundColor, color: "black", borderRadius: "5px" } };
   };
   const draggableAccessor = (event) => event.status !== "Completed" && event.status !== "Expired";
 
