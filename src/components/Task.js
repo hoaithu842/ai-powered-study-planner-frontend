@@ -204,22 +204,23 @@ export default function Task() {
     const validateForm = () => {
         let valid = true;
         const newErrors = {title: "", estimatedTime: 0};
-
+        let validTask = newTask;
+        if (editingTask) validTask = editingTask;
         // Validate Title
-        if (!newTask.title.trim()) {
+        if (!validTask.title.trim()) {
             newErrors.title = "Title is required.";
             valid = false;
         }
 
         // Validate Estimate Hour
-        const estimatedTime = parseFloat(newTask.estimatedTime);
-        if (!String(newTask.estimatedTime).trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
+        const estimatedTime = parseFloat(validTask.estimatedTime);
+        if (!String(validTask.estimatedTime).trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
             newErrors.estimatedTime = "Estimate hour must be a positive number.";
             valid = false;
         }
 
         // Validate Start and End Time
-        if (newTask.endTime <= newTask.startTime) {
+        if (validTask.endTime <= validTask.startTime) {
             newErrors.endTime = "End time must be after start time.";
             valid = false;
         }
@@ -227,7 +228,10 @@ export default function Task() {
         return valid;
     };
     const handleSubmit = () => {
-        if (validateForm()) {
+        if (editingTask) {
+            if (validateForm()) handleEditTask(editingTask);
+        }
+        else if (validateForm()) {
             handleCreateTask(newTask);
         }
     };
@@ -290,7 +294,11 @@ export default function Task() {
         setShowEditModal(false);
         setEditingTask(null);
     };
-
+    const handleMarkAsCompleted = () => {
+        const updatedStatus =
+        editingTask.status === "Completed" ? "Todo" : "Completed";
+        setEditingTask((prev) => ({ ...prev, status: updatedStatus }));
+    };
     // Handle delete task
     const handleDeleteTask = async () => {
         try {
@@ -636,9 +644,11 @@ export default function Task() {
                                 name="title"
                                 value={editingTask ? editingTask.title : ""}
                                 onChange={(e) => setEditingTask({...editingTask, title: e.target.value})}
+                                isInvalid={!!errors.title}
                             />
+                            <Form.Control.Feedback type="invalid">{errors.title}</Form.Control.Feedback>
                         </Form.Group>
-                        <Form.Group controlId="taskDescription">
+                        <Form.Group controlId="taskDescription" className="mt-2">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
                                 as="textarea" rows={2}
@@ -648,7 +658,7 @@ export default function Task() {
                                 onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
                             />
                         </Form.Group>
-                        <Form.Group controlId="taskPriority" className="mt-3">
+                        <Form.Group controlId="taskPriority" className="mt-2">
                             <Form.Label>Priority</Form.Label>
                             <Form.Control
                                 as="select"
@@ -661,50 +671,50 @@ export default function Task() {
                                 <option value="Low">Low</option>
                             </Form.Control>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStatus" className="mt-3">
-                            <Form.Label>Status</Form.Label>
+                        <Form.Group controlId="taskEstimatedTime" className="mt-2">
+                            <Form.Label>Estimate Hour</Form.Label>
                             <Form.Control
-                                as="select"
-                                name="status"
-                                value={editingTask ? editingTask.status : ""}
-                                onChange={(e) => setEditingTask({...editingTask, status: e.target.value})}
-                            >
-                                <option value="Todo">To do</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                            </Form.Control>
+                                type="number"
+                                name="estimatedTime"
+                                placeholder="Enter estimated hours"
+                                value={editingTask ? editingTask.estimatedTime : 0}
+                                onChange={(e) => setEditingTask({...editingTask, estimatedTime: e.target.value})}
+                                min="0"
+                                step="0.1"
+                                isInvalid={!!errors.estimatedTime}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.estimatedTime}</Form.Control.Feedback>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStartTime" className="mt-3">
+                        <Form.Group controlId="taskStartTime" className="mt-2">
                             <Form.Label>Start Date & Time</Form.Label>
-                            <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.startTime : new Date()}
                                     onChange={(date) => setEditingTask({...editingTask, startTime: date})}
                                     showTimeSelect
                                     dateFormat="Pp"
-                                    className="form-control"
+                                    className="form-control ms-2"
                                 />
-                            </div>
                         </Form.Group>
 
-                        <Form.Group controlId="taskEndTime" className="mt-3">
+                        <Form.Group controlId="taskEndTime" className="mt-2">
                             <Form.Label>End Date & Time</Form.Label>
-                            <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.endTime : new Date()}
                                     onChange={(date) => setEditingTask({...editingTask, endTime: date})}
                                     showTimeSelect
                                     dateFormat="Pp"
-                                    className="form-control"
+                                    className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
                                 />
-                            </div>
+                                {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleEditTask}>
+                    <Button variant={editingTask?.status === "Completed" ? "warning" : "success"} 
+                            onClick={handleMarkAsCompleted}>
+                        {editingTask?.status === "Completed" ? "Mark as Incompleted" : "Mark as Completed"}
+                    </Button>
+                    <Button variant="primary" onClick={handleSubmit}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
