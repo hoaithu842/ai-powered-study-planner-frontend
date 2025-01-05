@@ -1,27 +1,73 @@
 import React, {useState, useEffect} from "react";
-import {Button, Card, Container, Form, Alert, Modal} from 'react-bootstrap';
+import {Button, Card, Container, Form, Alert, Modal, Col, Row} from 'react-bootstrap';
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {useAuthContext} from "../contexts/AuthContext";  // Import axios for API calls
 
 export default function Profile() {
-    const {token, logout} = useAuthContext(); // Destructure logout from context
+    const {token, logout, userProfile, updatePasswordForUser} = useAuthContext(); // Destructure logout from context
     const [user, setUser] = useState(null);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [avatar, setAvatar] = useState(""); // Add state for avatar
     const [newAvatar, setNewAvatar] = useState(""); // Temporarily store new avatar
     const [showModal, setShowModal] = useState(false); // Control modal visibility
     const [shouldUpdateAvatar, setShouldUpdateAvatar] = useState(false); // Flag to check if avatar should be updated
+    const [showChangePwModal, setShowChangePwModal] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [pwerror, setPwError] = useState("");
+
+    const handleChangePassword = () => {
+        setShowChangePwModal(true);
+    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Validation
+        if (newPassword !== confirmPassword) {
+            setPwError("New password and confirm password do not match.");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            setPwError("Password must be at least 6 characters long.");
+            return;
+        }
+
+        setPwError(""); // Clear previous errors
+        setLoading(true);
+
+        try {
+            // Call the updatePassword function from context
+            const message = await updatePasswordForUser(currentPassword, newPassword);
+            setSuccess(message);
+            setTimeout(() => setSuccess(""), 3000);
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            setShowChangePwModal(false);
+        } catch (err) {
+            setPwError(err.message || "Failed to update password.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (token) {
-            fetchProfile(token);
+        if (userProfile) {
+            setUser(userProfile);
+            setName(userProfile.name);
+            setEmail(userProfile.email);
+            setAvatar(userProfile.avatar);
+            setLoading(false);
         }
-    }, [token])
+    }, [userProfile]); // Add dependencies to run only when userProfile changes    
 
     const handleAvatarClick = () => {
         setShowModal(true); // Open the modal
@@ -38,25 +84,13 @@ export default function Profile() {
         }
     };
 
-    const fetchProfile = async (token) => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/profile`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const userData = response.data;
-            setUser(userData);
-            setName(userData.name);
-            setEmail(userData.email);
-            setAvatar(userData.avatar);
-            setLoading(false);
-        } catch (err) {
-            setError("Failed to fetch profile");
-            setLoading(false);
-        }
+    const handleLogout = () => {
+        logout();
+        console.log("logout");
+        navigate('/');
     }
+
+
 
     // Handle the form submission to update profile
     const handleUpdateProfile = async (e) => {
@@ -65,8 +99,7 @@ export default function Profile() {
             setLoading(true); // Start the loading state
 
             const payload = {
-                name,
-                email,
+                name: name ? name : userProfile.name,
                 avatar: shouldUpdateAvatar ? newAvatar : avatar, // Use new avatar if updated, otherwise retain the old one
             };
 
@@ -84,7 +117,7 @@ export default function Profile() {
             setUser(response.data); // Update the user state with the new response data
             setAvatar(response.data.avatar); // Update the avatar state
             setLoading(false); // End the loading state
-            alert("Profile updated successfully!"); // Notify the user of success
+            //alert("Profile updated successfully!"); // Notify the user of success
         } catch (error) {
             setError("Failed to update profile"); // Display an error message
             setLoading(false); // End the loading state
@@ -121,69 +154,66 @@ export default function Profile() {
     };
 
     return (
-        <Container className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
-            <div style={{maxWidth: "500px", width: "100%"}}>
-                <Card>
-                    <Card.Body>
-                        <h2 className="text-center mb-4">Profile</h2>
-                        {error && <Alert variant="danger">{error}</Alert>}
-                        {/* Avatar Section */}
-                        <div className="text-center mb-4" style={{
-                            display: "flex",            // Enable Flexbox
-                            justifyContent: "center",   // Center horizontally
-                            alignItems: "center"        // Center vertically
-                        }}>
-                            <img
-                                src={newAvatar || avatar || "https://via.placeholder.com/150"}
-                                alt="User Avatar"
-                                style={{
-                                    width: "150px",               // Fixed size for square avatar
-                                    height: "150px",              // Fixed size for square avatar
-                                    borderRadius: "50%",          // Circular shape
-                                    cursor: "pointer",           // Pointer cursor for click interaction
-                                    objectFit: "cover",          // Ensure image covers the container
-                                    objectPosition: "center",    // Center the image within the circle
-                                }}
-                                onClick={handleAvatarClick} // Open modal on click
-                            />
-                        </div>
-                        <Form onSubmit={handleUpdateProfile}>
-                            <Form.Group id="name">
-                                <Form.Label>Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Enter Name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                />
-                            </Form.Group>
-
-                            <Form.Group id="email" className="mt-3">
-                                <Form.Label>Email</Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    placeholder="Enter Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    readOnly
-                                />
-                            </Form.Group>
-
-                            <Button disabled={loading} className="w-100 mt-4" type="submit">
-                                Update Profile
-                            </Button>
-                        </Form>
-                    </Card.Body>
-                </Card>
-
-                <div className="w-100 text-center mt-3">
-                    <Button onClick={() => navigate('/')} className="w-100 mt-2" variant="outline-danger">
-                        Cancel
-                    </Button>
+        <Container style={{minHeight: "100vh"}}>
+            <h2 className="text-center mb-4 mt-4">Profile</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
+            <Row className="d-flex">
+                <Col xs={12} lg={4}>
+                {/* Avatar Section */}
+                <div className="text-center mb-4" style={{
+                    display: "flex",            // Enable Flexbox
+                    justifyContent: "center",   // Center horizontally
+                    alignItems: "center"        // Center vertically
+                }}>
+                    <img
+                        src={newAvatar || avatar || "https://via.placeholder.com/200"}
+                        alt="User Avatar"
+                        style={{
+                            width: "200px",               // Fixed size for square avatar
+                            height: "200px",              // Fixed size for square avatar
+                            borderRadius: "50%",          // Circular shape
+                            cursor: "pointer",           // Pointer cursor for click interaction
+                            objectFit: "cover",          // Ensure image covers the container
+                            objectPosition: "center",    // Center the image within the circle
+                        }}
+                        onClick={handleAvatarClick} // Open modal on click
+                    />
                 </div>
-            </div>
+                </Col>
+                <Col xs={12} lg={6}>
+                <Form onSubmit={handleUpdateProfile}>
+                    <Form.Group id="name">
+                        <Form.Label>Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    </Form.Group>
+
+                    <Form.Group id="email" className="mt-3">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            value={email}
+                            disabled
+                            readOnly
+                        />
+                    </Form.Group>
+
+                    <Button disabled={loading} className="w-100 mt-4" type="submit">
+                        Update Profile
+                    </Button>
+                </Form>
+                <div className="d-flex justify-content-end mt-5">
+                <Button variant="warning" className="me-3" onClick={handleChangePassword}>Change Password</Button>
+                <Button variant="danger" onClick={handleLogout}>Logout</Button>
+                </div>
+                </Col>
+            </Row>
             {/* Modal for Avatar Upload */}
             <Modal show={showModal} onHide={handleModalClose}>
                 <Modal.Header closeButton>
@@ -229,6 +259,50 @@ export default function Profile() {
                         Accept
                     </Button>
                 </Modal.Footer>
+            </Modal>
+            {/* Modal change password*/}
+            <Modal show={showChangePwModal}>
+                <Modal.Header closeButton onHide={() => setShowChangePwModal(false)}>
+                    <Modal.Title>Change Password</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {pwerror && <Alert variant="danger">{pwerror}</Alert>}
+                    <Form onSubmit={handleSubmit}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Current Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Enter current password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>New Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Enter new password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Confirm New Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Confirm new password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Button variant="primary" type="submit" className="w-100">
+                            Change Password
+                        </Button>
+                    </Form>
+                </Modal.Body>
             </Modal>
         </Container>
     );

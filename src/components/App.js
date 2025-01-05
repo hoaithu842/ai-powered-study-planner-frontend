@@ -20,7 +20,7 @@ function App() {
                 <NavigationBar />
                 <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
                     <Routes>
-                        <Route path="/" element={<Homepage />} />
+                        <Route path="/" element={<PrivateRoute><Schedule /></PrivateRoute>} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />

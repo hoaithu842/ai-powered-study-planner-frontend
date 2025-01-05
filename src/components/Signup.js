@@ -7,6 +7,7 @@ import {Link} from "react-router";
 import firebase from "firebase/compat/app";
 import 'firebase/compat/auth';
 import axios from 'axios';
+import logo from "../assets/logo64.png"
 
 export default function Signup() {
     const emailRef = useRef();
@@ -91,39 +92,45 @@ export default function Signup() {
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-            <div className="w-100" style={{maxWidth: "400px"}}>
-                <Card>
+        <Container className="d-flex align-items-center justify-content-center auth">
+            <div className="auth-card">
+                <Card style={{backgroundColor: "transparent", border: "none"}}>
                     <Card.Body>
-                        <h2 className="text-center mb-4">Sign Up</h2>
+                        <div className="text-center mb-3">
+                            <img src={logo}></img>
+                            <h2 className>Create account here!</h2>
+                        </div>
                         {error && <Alert variant="danger">{error}</Alert>}
                         <Form onSubmit={handleSubmit}>
                             <Form.Group id="email">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control type="email" placeholder="Enter Email" ref={emailRef} required/>
                             </Form.Group>
-                            <Form.Group id="password">
+                            <Form.Group id="password" className="mt-2">
                                 <Form.Label>Password</Form.Label>
                                 <Form.Control type="password" placeholder="Enter Password" ref={passwordRef} required/>
                             </Form.Group>
-                            <Form.Group id="password_confirmation">
+                            <Form.Group id="password_confirmation" className="mt-2">
                                 <Form.Label>Re-Enter Password</Form.Label>
                                 <Form.Control type="password" placeholder="Re-Enter Password"
                                               ref={passwordConfirmationRef} required/>
                             </Form.Group>
-                            <Button disabled={loading} className="w-100" type="submit">Sign Up</Button>
+                            <Button disabled={loading} className="w-100 mt-3 fw-bold" type="submit">Sign up</Button>
                         </Form>
                     </Card.Body>
                 </Card>
 
                 <div className="w-100 text-center mt-2">
-                    Already have an account? <Link to="/login">Log In</Link>
+                    Already have an account? <Link to="/login">Login</Link>
                 </div>
-
+                <div className="w-100 text-center mt-2 text-muted">
+                    — or —
+                </div>
                 <div className="w-100 text-center mt-3">
                     <GoogleLoginButton
                         onClick={handleGoogleLogin}
                         style={{width: "100%"}}
+                        text="Sign up with Google"
                     />
                 </div>
             </div>

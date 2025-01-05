@@ -7,6 +7,7 @@ import firebase from "firebase/compat/app";
 import 'firebase/compat/auth';
 import {Link} from "react-router";
 import axios from 'axios';  // Import axios for API calls
+import logo from "../assets/logo64.png"
 
 export default function Login() {
     const emailRef = useRef();
@@ -112,22 +113,25 @@ export default function Login() {
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{minHeight: "100vh"}}>
-            <div className="w-100" style={{maxWidth: "400px"}}>
-                <Card>
+        <Container className="d-flex align-items-center justify-content-center auth">
+            <div className="auth-card">
+                <Card style={{backgroundColor: "transparent", border: "none"}}>
                     <Card.Body>
-                        <h2 className="text-center mb-4">Log In</h2>
+                        <div className="text-center mb-3">
+                            <img src={logo}></img>
+                            <h2 className>Welcome back!</h2>
+                        </div>
                         {error && <Alert variant="danger">{error}</Alert>}
                         <Form onSubmit={handleSubmit}>
                             <Form.Group id="email">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control type="email" placeholder="Enter Email" ref={emailRef} required/>
                             </Form.Group>
-                            <Form.Group id="password">
+                            <Form.Group id="password" className="mt-2">
                                 <Form.Label>Password</Form.Label>
                                 <Form.Control type="password" placeholder="Enter Password" ref={passwordRef} required/>
                             </Form.Group>
-                            <Button disabled={loading} className="w-100" type="submit">Log In</Button>
+                            <Button disabled={loading} className="w-100 mt-3 fw-bold" type="submit">Login</Button>
                         </Form>
                         <div className="w-100 text-center mt-2">
                             <Button variant="link" onClick={handleForgotPassword}>
@@ -140,7 +144,9 @@ export default function Login() {
                 <div className="w-100 text-center mt-2">
                     Don't have an account? <Link to="/signup">Sign Up</Link>
                 </div>
-
+                <div className="w-100 text-center mt-2 text-muted">
+                    — or —
+                </div>
                 <div className="w-100 text-center mt-3">
                     <GoogleLoginButton
                         onClick={handleGoogleLogin}
