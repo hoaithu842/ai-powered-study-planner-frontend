@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, DropdownButton, Dropdown } from "react-bootstrap";
-import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import React, {useState, useEffect} from "react";
+import {Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, Spinner} from "react-bootstrap";
+import {FaEdit, FaTrashAlt} from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ export default function Task() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [feedback, setFeedback] = useState("");
+    const [analyzeLoading, setAnalyzeLoading] = useState(false);
+
     const priorityOrder = {
         High: 1,
         Medium: 2,
@@ -40,6 +42,7 @@ export default function Task() {
 
     const [priorityFilter, setPriorityFilter] = useState(null);
     const [statusFilter, setStatusFilter] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         const fetchFilteredTasks = async () => {
@@ -54,15 +57,18 @@ export default function Task() {
                 if (statusFilter && statusFilter !== "All Status") {
                     params.append("status", statusFilter);
                 }
+                if (searchQuery.trim()) {
+                    params.append("searchQuery", searchQuery);
+                }
 
-                console.log(`Calling API with query: ${params.toString()}`);
+                //console.log(`Calling API with query: ${params.toString()}`);
                 // Call the API with the constructed query
                 const response = await axios.get(`${process.env.REACT_APP_API_URL}/tasks?${params.toString()}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log(`Received data: ${response.data}`);
+                //console.log(`Received data: ${response.data}`);
 
                 setTasks(response.data);
             } catch (error) {
@@ -73,10 +79,10 @@ export default function Task() {
             }
         };
 
-        if (priorityFilter !== null || statusFilter !== null) {
+        if (priorityFilter !== null || statusFilter !== null || searchQuery) {
             fetchFilteredTasks();
         }
-    }, [priorityFilter, statusFilter, token]); // Include dependencies
+    }, [priorityFilter, statusFilter, searchQuery, token]); // Include dependencies
 
     const handlePriorityFilterChange = (priority) => {
         setPriorityFilter(priority);
@@ -166,12 +172,30 @@ export default function Task() {
             ...prevState,
             startTime: date,
         }));
+
+        if (date && newTask.endTime && date >= newTask.endTime) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                endTime: "End time must be after start time.",
+            }));
+        } else {
+            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+        }
     };
     const handleEndDateChange = (date) => {
         setNewTask((prevState) => ({
             ...prevState,
             endTime: date,
         }));
+
+        if (date && newTask.startTime && date <= newTask.startTime) {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                endTime: "End time must be after start time.",
+            }));
+        } else {
+            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+        }
     };
     const [errors, setErrors] = useState({
         title: "",
@@ -179,26 +203,35 @@ export default function Task() {
     });
     const validateForm = () => {
         let valid = true;
-        const newErrors = { title: "", estimatedTime: 0 };
-
+        const newErrors = {title: "", estimatedTime: 0};
+        let validTask = newTask;
+        if (editingTask) validTask = editingTask;
         // Validate Title
-        if (!newTask.title.trim()) {
+        if (!validTask.title.trim()) {
             newErrors.title = "Title is required.";
             valid = false;
         }
 
         // Validate Estimate Hour
-        const estimatedTime = parseFloat(newTask.estimatedTime);
-        if (!newTask.estimatedTime.trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
+        const estimatedTime = parseFloat(validTask.estimatedTime);
+        if (!String(validTask.estimatedTime).trim() || isNaN(estimatedTime) || estimatedTime <= 0) {
             newErrors.estimatedTime = "Estimate hour must be a positive number.";
             valid = false;
         }
 
+        // Validate Start and End Time
+        if (validTask.endTime <= validTask.startTime) {
+            newErrors.endTime = "End time must be after start time.";
+            valid = false;
+        }
         setErrors(newErrors);
         return valid;
     };
     const handleSubmit = () => {
-        if (validateForm()) {
+        if (editingTask) {
+            if (validateForm()) handleEditTask(editingTask);
+        }
+        else if (validateForm()) {
             handleCreateTask(newTask);
         }
     };
@@ -219,8 +252,8 @@ export default function Task() {
             setNewTask({
                 title: "",
                 description: "",
-                priority: "",
-                status: "",
+                priority: "Medium",
+                status: "Todo",
                 estimatedTime: 0,
                 startTime: new Date(),
                 endTime: new Date()
@@ -261,7 +294,11 @@ export default function Task() {
         setShowEditModal(false);
         setEditingTask(null);
     };
-
+    const handleMarkAsCompleted = () => {
+        const updatedStatus =
+        editingTask.status === "Completed" ? "Todo" : "Completed";
+        setEditingTask((prev) => ({ ...prev, status: updatedStatus }));
+    };
     // Handle delete task
     const handleDeleteTask = async () => {
         try {
@@ -299,31 +336,11 @@ export default function Task() {
             hour12: true
         });
     };
-
-    // If loading, show a loading message
-    if (loading) {
-        return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-                <h3>Loading...</h3>
-            </Container>
-        );
-    }
-
-    // If there was an error fetching tasks
-    if (error) {
-        return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-                <Alert variant="danger">{error}</Alert>
-            </Container>
-        );
-    }
-
     return (
-        <Container style={{ minHeight: '100vh' }} className="justify-content-center mt-4">
-            <Row style={{ padding: "20px" }}>
-
-                <Col xs={12} sm={12} md={6} lg={6} className="mb-4">
-                    <div className="d-flex flex-column align-items-center">
+        <Container style={{minHeight: '100vh'}} className="justify-content-between mt-4">
+            <Row style={{margin: "0 10vw"}}>
+                <Col xs={12} sm={12} md={4} lg={5} className="mb-4">
+                    <div className="d-flex flex-column justify-content-center align-items-center">
                         {/* Add Task & Analyze with AI Buttons */}
                         <Row className="mb-3 w-100">
                             <Col xs={6}>
@@ -336,65 +353,95 @@ export default function Task() {
                                 </Button>
                             </Col>
                             <Col xs={6}>
-                                <Button
-                                    variant="info"
-                                    onClick={() => fetchFeedback()}
-                                    style={{ width: "100%" }}
-                                >
-                                    Analyze with AI
-                                </Button>
+                            <Button
+                                variant="info"
+                                onClick={async () => {
+                                    setAnalyzeLoading(true);
+                                    try {
+                                        await fetchFeedback();
+                                    } catch (error) {
+                                        console.error("Error analyzing AI:", error);
+                                    } finally {
+                                        setAnalyzeLoading(false);
+                                    }
+                                }}
+                                style={{ width: "100%" }}
+                                disabled={analyzeLoading}
+                            >
+                                {analyzeLoading ? (
+                                    <span>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Analyzing...
+                                    </span>
+                                ) : (
+                                    "Analyze with AI"
+                                )}
+                            </Button>
                             </Col>
                         </Row>
                         {/* Filters */}
                         <Row className="mb-3 w-100">
-                            <Col xs={6}>
-                                <DropdownButton
-                                    variant="outline-secondary"
-                                    title={priorityFilter ? `Priority: ${priorityFilter}` : "Priority (Filter)"}
-                                    style={{ width: "100%" }}
-                                    onSelect={handlePriorityFilterChange}
+                            <Col xs={12} sm={6}>
+                                <Form.Select
+                                    value={priorityFilter || "All Priority"}
+                                    onChange={(e) => handlePriorityFilterChange(e.target.value)}
                                 >
-                                    <Dropdown.Item eventKey="All Priority">All Priority</Dropdown.Item>
-                                    <Dropdown.Item eventKey="High">High</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Medium">Medium</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Low">Low</Dropdown.Item>
-                                </DropdownButton>
+                                    <option value="All Priority">All Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </Form.Select>
                             </Col>
-                            <Col xs={6}>
-                                <DropdownButton
-                                    variant="outline-secondary"
-                                    title={statusFilter ? `Status: ${statusFilter}` : "Status (Filter)"}
-                                    style={{ width: "100%" }}
-                                    onSelect={handleStatusFilterChange}
+                            <Col xs={12} sm={6}>
+                                <Form.Select
+                                    value={statusFilter || "All Status"}
+                                    onChange={(e) => handleStatusFilterChange(e.target.value)}
                                 >
-                                    <Dropdown.Item eventKey="All Status">All Status</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Todo">Todo</Dropdown.Item>
-                                    <Dropdown.Item eventKey="In Progress">In Progress</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Completed">Completed</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Completed">Expired</Dropdown.Item>
-                                </DropdownButton>
+                                    <option value="All Status">All Status</option>
+                                    <option value="Todo">Todo</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Completed">Expired</option>
+                                </Form.Select>
                             </Col>
                         </Row>
                         {/* Sorting Buttons  */}
                         <Row className="mb-3 w-100">
                             <Col xs={6}>
-                                <Button variant="outline-secondary" style={{ width: "100%" }}
-                                    onClick={sortTasksByPriority}>
-                                    Sort By Priority
+                                <Button variant="dark" style={{width: "100%"}}
+                                        onClick={sortTasksByPriority}>
+                                    Sort by Priority
                                 </Button>
                             </Col>
                             <Col xs={6}>
-                                <Button variant="outline-secondary" style={{ width: "100%" }} onClick={sortTasksByStatus}>
-                                    By Status
+                                <Button variant="dark" style={{width: "100%"}} onClick={sortTasksByStatus}>
+                                    Sort by Status
                                 </Button>
                             </Col>
                         </Row>
-
+                        {/* Search Bar */}
+                        <Row className="mb-3 w-100">
+                            <Col xs={12}>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Search tasks..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </Col>
+                        </Row>
                         {/* Feedback Display */}
                         {feedback && (
                             <Row className="mb-3">
                                 <Col xs={12}>
-                                    <div className="alert alert-info">
+                                    <div className="alert alert-info feedback-area">
                                         <ReactMarkdown>{feedback}</ReactMarkdown>
                                     </div>
                                 </Col>
@@ -403,7 +450,16 @@ export default function Task() {
                     </div>
 
                 </Col>
-                <Col xs={12} sm={12} md={6} lg={6} className="mb-4 tasks-list">
+                <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list">
+                {loading ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <h3>Loading...</h3>
+                    </div>
+                ) : error ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <Alert>{error}</Alert>
+                    </div>
+                ) : (
                     <Row>
                         {tasks.length > 0 ? (
                             tasks.map((task) => (
@@ -483,6 +539,7 @@ export default function Task() {
                             </Col>
                         )}
                     </Row>
+                )}
                 </Col>
             </Row>
             {/* Modal for creating a new task */}
@@ -558,9 +615,11 @@ export default function Task() {
                                 onChange={handleEndDateChange}
                                 showTimeSelect
                                 dateFormat="Pp"
-                                className="form-control ms-3"
+                                className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
                             />
+                            {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
+
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -583,10 +642,12 @@ export default function Task() {
                                 placeholder="Enter task title"
                                 name="title"
                                 value={editingTask ? editingTask.title : ""}
-                                onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                                onChange={(e) => setEditingTask({...editingTask, title: e.target.value})}
+                                isInvalid={!!errors.title}
                             />
+                            <Form.Control.Feedback type="invalid">{errors.title}</Form.Control.Feedback>
                         </Form.Group>
-                        <Form.Group controlId="taskDescription">
+                        <Form.Group controlId="taskDescription" className="mt-2">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
                                 as="textarea" rows={2}
@@ -596,7 +657,7 @@ export default function Task() {
                                 onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="taskPriority" className="mt-3">
+                        <Form.Group controlId="taskPriority" className="mt-2">
                             <Form.Label>Priority</Form.Label>
                             <Form.Control
                                 as="select"
@@ -609,50 +670,50 @@ export default function Task() {
                                 <option value="Low">Low</option>
                             </Form.Control>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStatus" className="mt-3">
-                            <Form.Label>Status</Form.Label>
+                        <Form.Group controlId="taskEstimatedTime" className="mt-2">
+                            <Form.Label>Estimate Hour</Form.Label>
                             <Form.Control
-                                as="select"
-                                name="status"
-                                value={editingTask ? editingTask.status : ""}
-                                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
-                            >
-                                <option value="Todo">To do</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                            </Form.Control>
+                                type="number"
+                                name="estimatedTime"
+                                placeholder="Enter estimated hours"
+                                value={editingTask ? editingTask.estimatedTime : 0}
+                                onChange={(e) => setEditingTask({...editingTask, estimatedTime: e.target.value})}
+                                min="0"
+                                step="0.1"
+                                isInvalid={!!errors.estimatedTime}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.estimatedTime}</Form.Control.Feedback>
                         </Form.Group>
-
-                        <Form.Group controlId="taskStartTime" className="mt-3">
+                        <Form.Group controlId="taskStartTime" className="mt-2">
                             <Form.Label>Start Date & Time</Form.Label>
-                            <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.startTime : new Date()}
                                     onChange={(date) => setEditingTask({ ...editingTask, startTime: date })}
                                     showTimeSelect
                                     dateFormat="Pp"
-                                    className="form-control"
+                                    className="form-control ms-2"
                                 />
-                            </div>
                         </Form.Group>
 
-                        <Form.Group controlId="taskEndTime" className="mt-3">
+                        <Form.Group controlId="taskEndTime" className="mt-2">
                             <Form.Label>End Date & Time</Form.Label>
-                            <div className="d-block">
                                 <DatePicker
                                     selected={editingTask ? editingTask.endTime : new Date()}
                                     onChange={(date) => setEditingTask({ ...editingTask, endTime: date })}
                                     showTimeSelect
                                     dateFormat="Pp"
-                                    className="form-control"
+                                    className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
                                 />
-                            </div>
+                                {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleEditTask}>
+                    <Button variant={editingTask?.status === "Completed" ? "warning" : "success"} 
+                            onClick={handleMarkAsCompleted}>
+                        {editingTask?.status === "Completed" ? "Mark as Incompleted" : "Mark as Completed"}
+                    </Button>
+                    <Button variant="primary" onClick={handleSubmit}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
