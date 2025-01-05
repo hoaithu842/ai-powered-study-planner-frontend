@@ -5,7 +5,7 @@ import { Button, Form, Badge } from "react-bootstrap";
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
 
-const Timer = ({ task, onSessionEnd }) => {
+const Timer = ({ task, onSessionEnd, onTaskUpdate }) => {
   const [duration, setDuration] = useState(25); // Focus duration in minutes
   const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
   const [timeLeft, setTimeLeft] = useState(null); // Time remaining in seconds
@@ -81,6 +81,7 @@ const Timer = ({ task, onSessionEnd }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("Task successfully updated:", response.data); 
+      onTaskUpdate(task.id, "Completed");
       setIsRunning(false);
       setTimeLeft(null);
       onSessionEnd();

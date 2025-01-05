@@ -76,7 +76,16 @@ const Schedule = () => {
   // Handle drag-and-drop event
   const handleEventDrop = useCallback(
     ({ event, start, end }) => {
-      const newStatus = end < new Date() ? "Expired" : event.status;
+      let newStatus;
+      const now = new Date();
+
+      if (end < now) {
+        newStatus = "Expired";
+      } else if (start <= now && end > now) {
+        newStatus = "In Progress";
+      } else if (start > now) {
+        newStatus = "Todo";
+      }
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === event.id ? { ...event, start, end, status: newStatus } : task
@@ -107,6 +116,13 @@ const Schedule = () => {
         )
       );
     }
+  };
+  const handleTaskUpdate = (taskId, newStatus) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
   };
 
   // Calendar Event Styling
@@ -158,6 +174,7 @@ const Schedule = () => {
                   setShowModal(false); // Close modal when session ends
                   alert("Session completed!");
                 }}
+                onTaskUpdate={handleTaskUpdate}
               />
             </Modal.Body>
         </Modal>
