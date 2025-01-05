@@ -5,10 +5,11 @@ import { Button, Form, Badge } from "react-bootstrap";
 import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
 
-const Timer = ({ task, onSessionEnd }) => {
+const Timer = ({ task, onSessionEnd, onTaskUpdate }) => {
   const [duration, setDuration] = useState(25); // Focus duration in minutes
   const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
   const [timeLeft, setTimeLeft] = useState(null); // Time remaining in seconds
+  const [startTime, setStartTime] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isFocusTime, setIsFocusTime] = useState(true); // Toggle between focus and break time
   const { token } = useAuthContext();
@@ -41,8 +42,8 @@ const Timer = ({ task, onSessionEnd }) => {
       toast.error("Only tasks 'In Progress' can be timed!");
       return;
     }
-    
     const now = Date.now();
+    setStartTime(now);
     const taskEndTime = new Date(task.end).getTime();
     const timerEnd = now + duration * 60 * 1000;
     if (timerEnd > taskEndTime) {
@@ -58,21 +59,55 @@ const Timer = ({ task, onSessionEnd }) => {
   const endTimerEarly = () => {
     setIsRunning(false);
     setTimeLeft(null); 
+    handleSessionEnd();
     toast.info("Timer ended early.");
   };
 
-  const handleSessionEnd = () => {
-    if (isFocusTime) {
-      toast.success("Focus session completed! Starting break time.");
-      setTimeLeft(breakDuration * 60); // Switch to break time
-      setIsFocusTime(false);
-    } else {
-      toast.success("Break session completed! Starting focus time.");
-      setTimeLeft(duration * 60); // Switch to focus time
-      setIsFocusTime(true);
+  const handleSessionEnd = async () => {
+    const endTime = new Date();
+    const sessionDuration = ((duration*60 - timeLeft) / 60).toFixed(1);
+
+    const sessionData = {
+      task: task.id,
+      startTime: startTime,
+      endTime,
+      duration: parseFloat(sessionDuration),
+    };
+  
+    try {
+      await saveTimerSession(sessionData);
+      if (isFocusTime) {
+        toast.success("Focus session completed! Starting break time.");
+        setStartTime(null);
+        setTimeLeft(breakDuration * 60); // Switch to break time
+        setIsFocusTime(false);
+      } else {
+        toast.success("Break session completed! Starting focus time.");
+        setTimeLeft(duration * 60); // Switch to focus time
+        setIsFocusTime(true);
+      }
+    } catch (error) {
+      toast.error("Error saving timer session: " + error.message);
     }
   };
-
+  
+  const saveTimerSession = async (sessionData) => {
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/timer`,
+        sessionData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Timer session saved:", response.data);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+  };
+  
   const markTaskAsDone = async () => {
     try {
       const response = await axios.put(
@@ -80,9 +115,10 @@ const Timer = ({ task, onSessionEnd }) => {
         { status: "Completed" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("Task successfully updated:", response.data); 
+      onTaskUpdate(task.id, "Completed");
       setIsRunning(false);
       setTimeLeft(null);
+      handleSessionEnd();
       onSessionEnd();
     } catch (error) {
       toast.error("Error updating task status: " + error.message);

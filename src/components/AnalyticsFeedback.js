@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Container } from 'react-bootstrap';
+import { Card, Container, Spinner } from 'react-bootstrap';
 import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
@@ -29,21 +29,22 @@ const AnalyticsFeedback = ({ token }) => {
         return <p>{error}</p>;
     }
 
-    if (!feedback) {
-        return <p>Loading...</p>;
-    }
-
     return (
-        <Container>
-            <Card className="mb-4">
+        <div style={{height: "100%"}}>
+            <Card>
                 <Card.Body>
                     <Card.Title>Feedback Summary</Card.Title>
-                    <ReactMarkdown>{feedback.message}</ReactMarkdown>
-                    <hr />
-                    <ReactMarkdown>{feedback.feedback}</ReactMarkdown>
+                    { (!feedback || !feedback.message)  ? ( <Spinner animation="border" variant="primary" />)
+                    : 
+                    <div style={{overflowY: "auto"}}>
+                        <ReactMarkdown>{feedback.message}</ReactMarkdown>
+                        <hr />
+                        <ReactMarkdown>{feedback.feedback}</ReactMarkdown>
+                    </div>
+                    }
                 </Card.Body>
             </Card>
-        </Container>
+        </div>
     );
 };
 

@@ -21,7 +21,7 @@ function NavigationBar() {
                             <Nav.Link as={Link} to="/tasks" className={location.pathname === "/tasks" ? "nav-link active" : "nav-link"}>
                                 Task
                             </Nav.Link>
-                            <Nav.Link as={Link} to="/schedule" className={location.pathname === "/schedule" ? "nav-link active" : "nav-link"}>
+                            <Nav.Link as={Link} to="/schedule" className={location.pathname === "/schedule" || location.pathname === "/" ? "nav-link active" : "nav-link"}>
                                 Schedule
                             </Nav.Link>
                             <Nav.Link as={Link} to="/analytics" className={location.pathname === "/analytics" ? "nav-link active" : "nav-link"}>
