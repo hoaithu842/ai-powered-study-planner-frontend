@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ProgressBar, Card, Row, Col } from 'react-bootstrap';
+import { Card, Spinner } from 'react-bootstrap';
 import { Pie, Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -12,6 +12,8 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 import axios from 'axios';
 
 ChartJS.register(
@@ -57,9 +59,29 @@ const AnalyticsTotal = ({ token }) => {
     }
 
     if (!analyticsTotal) {
-        return <p>Loading...</p>;
+        return (
+            <div>
+            {/* Pie Chart */}
+            <Card className='mb-3'>
+                <Card.Body>
+                    <Card.Title>Task Status Distribution</Card.Title>
+                    <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+                        <Spinner animation="border" variant="primary" />
+                    </div>
+                </Card.Body>
+            </Card>
+            {/* Progress Bar */}
+            <Card className="mb-3">
+                <Card.Body>
+                    <Card.Title>Total Time Spent / Estimated Time</Card.Title>
+                        <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+                            <Spinner animation="border" variant="primary" />
+                        </div>
+                </Card.Body>
+            </Card>
+        </div>
+        );
     }
-
     // Prepare pie chart data
     const pieChartData = {
         labels: ['Todo', 'In Progress', 'Completed', 'Expired'],
@@ -76,58 +98,37 @@ const AnalyticsTotal = ({ token }) => {
         ],
     };
 
-    // Prepare line chart data for daily time spent
-    const dailyTimeChartData = {
-        labels: Object.keys(analyticsTotal.dailyTimeSpent || {}),
-        datasets: [
-            {
-                label: 'Time Spent (Minutes)',
-                data: Object.values(analyticsTotal.dailyTimeSpent || {}),
-                borderColor: '#4BC0C0',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: true,
-            },
-        ],
-    };
-
     // Calculate progress percentage
     const totalTimeSpent = analyticsTotal.totalTimeSpent || 0;
     const totalEstimatedTime = analyticsTotal.totalEstimatedTime || 1;
     const progressPercentage = Math.round((totalTimeSpent / (totalEstimatedTime * 60)) * 100);
 
     return (
-        <div>
+        <div style={{height: "100%"}}>
+            {/* Pie Chart */}
+            <Card className='mb-3'>
+                <Card.Body>
+                    <Card.Title>Task Status Distribution</Card.Title>
+                        <Pie data={pieChartData} />
+                </Card.Body>
+            </Card>
             {/* Progress Bar */}
             <Card className="mb-3">
                 <Card.Body>
                     <Card.Title>Total Time Spent / Estimated Time</Card.Title>
-                    <ProgressBar now={progressPercentage} label={`${progressPercentage}%`} />
+                    <div style={{ padding: '20px' }}>
+                        <CircularProgressbar
+                            value={progressPercentage}
+                            text={`${progressPercentage}%`}
+                            styles={buildStyles({
+                                textColor: '#4e73df',
+                                pathColor: progressPercentage > 50 ? '#28a745' : '#dc3545',
+                                trailColor: '#d6d6d6',
+                            })}
+                        />
+                    </div>
                 </Card.Body>
             </Card>
-
-            {/* Pie Chart */}
-            <Row className="mb-3">
-                <Col md={6}>
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>Task Status Distribution</Card.Title>
-                            <Pie data={pieChartData} />
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Line Chart */}
-            <Row>
-                <Col md={12}>
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>Daily Time Spent</Card.Title>
-                            <Line data={dailyTimeChartData} />
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
         </div>
     );
 };
