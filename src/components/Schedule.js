@@ -8,6 +8,9 @@ import axios from "axios";
 import { useAuthContext } from "../contexts/AuthContext";
 import Timer from "./Timer";
 import Modal from 'react-bootstrap/Modal';
+import { toast } from "react-toastify";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -148,6 +151,18 @@ const Schedule = () => {
 
   return (
     <div style={{ width: "100%", height: "calc(100vh - 150px)" }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       {loading && <p>Loading tasks...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
@@ -172,7 +187,7 @@ const Schedule = () => {
                 task={selectedTask}
                 onSessionEnd={() => {
                   setShowModal(false); // Close modal when session ends
-                  alert("Session completed!");
+                  toast.success("Session completed!");
                 }}
                 onTaskUpdate={handleTaskUpdate}
               />

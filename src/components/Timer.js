@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./Timer.css";
 import { Button, Form, Badge } from "react-bootstrap";
 import axios from "axios";
@@ -56,39 +58,62 @@ const Timer = ({ task, onSessionEnd, onTaskUpdate }) => {
     setIsFocusTime(true);
   };
 
-  const endTimerEarly = () => {
+  const endTimerEarly = async () => {
     setIsRunning(false);
-    setTimeLeft(null); 
-    handleSessionEnd();
-    toast.info("Timer ended early.");
+    clearInterval(timeLeft);
+  
+    if (isFocusTime) {
+      const endTime = new Date();
+      const sessionDuration = ((duration * 60 - timeLeft) / 60).toFixed(1);
+  
+      const sessionData = {
+        task: task.id,
+        startTime: startTime,
+        endTime,
+        duration: parseFloat(sessionDuration),
+      };
+  
+      try {
+        await saveTimerSession(sessionData);
+        toast.info("Focus session ended early");
+      } catch (error) {
+        toast.error("Error saving focus session: " + error.message);
+      }
+    } else {
+      toast.info("Break session ended early");
+    }
+    setTimeLeft(duration * 60);
+    setIsFocusTime(true);
+    setStartTime(null);
   };
+  
 
   const handleSessionEnd = async () => {
     const endTime = new Date();
     const sessionDuration = ((duration*60 - timeLeft) / 60).toFixed(1);
 
-    const sessionData = {
-      task: task.id,
-      startTime: startTime,
-      endTime,
-      duration: parseFloat(sessionDuration),
-    };
+    if (isFocusTime) {
+      const sessionData = {
+        task: task.id,
+        startTime: startTime,
+        endTime,
+        duration: parseFloat(sessionDuration),
+      };
   
-    try {
-      await saveTimerSession(sessionData);
-      if (isFocusTime) {
+      try {
+        await saveTimerSession(sessionData);
         toast.success("Focus session completed! Starting break time.");
-        setStartTime(null);
-        setTimeLeft(breakDuration * 60); // Switch to break time
-        setIsFocusTime(false);
-      } else {
-        toast.success("Break session completed! Starting focus time.");
-        setTimeLeft(duration * 60); // Switch to focus time
-        setIsFocusTime(true);
+      } catch (error) {
+        toast.error("Error saving timer session: " + error.message);
       }
-    } catch (error) {
-      toast.error("Error saving timer session: " + error.message);
+    } else {
+      toast.success("Break session completed! Starting focus time.");
     }
+  
+    // Switch between focus and break time
+    setTimeLeft(isFocusTime ? breakDuration * 60 : duration * 60);
+    setIsFocusTime(!isFocusTime);
+    setStartTime(null);
   };
   
   const saveTimerSession = async (sessionData) => {
@@ -119,6 +144,7 @@ const Timer = ({ task, onSessionEnd, onTaskUpdate }) => {
       setIsRunning(false);
       setTimeLeft(null);
       handleSessionEnd();
+      toast.success("Task marked as completed!");
       onSessionEnd();
     } catch (error) {
       toast.error("Error updating task status: " + error.message);
@@ -134,6 +160,18 @@ const Timer = ({ task, onSessionEnd, onTaskUpdate }) => {
 
   return (
     <div className="timer-container">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className="timer-header">
         <h2 className="timer-title">{task.title}</h2>
       </div>
