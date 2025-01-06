@@ -3,13 +3,13 @@ import {Button, Card, Container, Alert, Modal, Form, Row, Col, Badge, Spinner} f
 import {FaEdit, FaTrashAlt} from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import axios from "axios";
-import { useAuthContext } from "../contexts/AuthContext";
+import {useAuthContext} from "../contexts/AuthContext";
 import ReactMarkdown from 'react-markdown';
 
 export default function Task() {
-    const { token } = useAuthContext(); // Get token from context
+    const {token} = useAuthContext(); // Get token from context
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -61,18 +61,15 @@ export default function Task() {
                     params.append("searchQuery", searchQuery);
                 }
 
-                //console.log(`Calling API with query: ${params.toString()}`);
                 // Call the API with the constructed query
                 const response = await axios.get(`${process.env.REACT_APP_API_URL}/tasks?${params.toString()}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                //console.log(`Received data: ${response.data}`);
 
                 setTasks(response.data);
             } catch (error) {
-                console.error("Error fetching filtered tasks:", error);
                 setError("Failed to fetch filtered tasks. Please try again later.");
             } finally {
                 setLoading(false); // Hide loading indicator
@@ -161,7 +158,7 @@ export default function Task() {
 
     // Handle change in task input fields
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setNewTask({
             ...newTask,
             [name]: value,
@@ -179,7 +176,7 @@ export default function Task() {
                 endTime: "End time must be after start time.",
             }));
         } else {
-            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+            setErrors((prevErrors) => ({...prevErrors, endTime: ""}));
         }
     };
     const handleEndDateChange = (date) => {
@@ -194,7 +191,7 @@ export default function Task() {
                 endTime: "End time must be after start time.",
             }));
         } else {
-            setErrors((prevErrors) => ({ ...prevErrors, endTime: "" }));
+            setErrors((prevErrors) => ({...prevErrors, endTime: ""}));
         }
     };
     const [errors, setErrors] = useState({
@@ -230,8 +227,7 @@ export default function Task() {
     const handleSubmit = () => {
         if (editingTask) {
             if (validateForm()) handleEditTask(editingTask);
-        }
-        else if (validateForm()) {
+        } else if (validateForm()) {
             handleCreateTask(newTask);
         }
     };
@@ -287,7 +283,7 @@ export default function Task() {
         setEditingTask(task);
         const startTime = new Date(task.startTime);
         const endTime = new Date(task.endTime);
-        setEditingTask({ ...task, startTime: startTime, endTime: endTime });
+        setEditingTask({...task, startTime: startTime, endTime: endTime});
         setShowEditModal(true);
     };
     const handleCloseEditModal = () => {
@@ -296,8 +292,8 @@ export default function Task() {
     };
     const handleMarkAsCompleted = () => {
         const updatedStatus =
-        editingTask.status === "Completed" ? "Todo" : "Completed";
-        setEditingTask((prev) => ({ ...prev, status: updatedStatus }));
+            editingTask.status === "Completed" ? "Todo" : "Completed";
+        setEditingTask((prev) => ({...prev, status: updatedStatus}));
     };
     // Handle delete task
     const handleDeleteTask = async () => {
@@ -347,29 +343,29 @@ export default function Task() {
                                 <Button
                                     variant="success"
                                     onClick={() => setShowCreateModal(true)}
-                                    style={{ width: "100%" }}
+                                    style={{width: "100%"}}
                                 >
                                     + Add Task
                                 </Button>
                             </Col>
                             <Col xs={6}>
-                            <Button
-                                variant="info"
-                                onClick={async () => {
-                                    setAnalyzeLoading(true);
-                                    try {
-                                        await fetchFeedback();
-                                    } catch (error) {
-                                        console.error("Error analyzing AI:", error);
-                                    } finally {
-                                        setAnalyzeLoading(false);
-                                    }
-                                }}
-                                style={{ width: "100%" }}
-                                disabled={analyzeLoading}
-                            >
-                                {analyzeLoading ? (
-                                    <span>
+                                <Button
+                                    variant="info"
+                                    onClick={async () => {
+                                        setAnalyzeLoading(true);
+                                        try {
+                                            await fetchFeedback();
+                                        } catch (error) {
+                                            console.error("Error analyzing AI:", error);
+                                        } finally {
+                                            setAnalyzeLoading(false);
+                                        }
+                                    }}
+                                    style={{width: "100%"}}
+                                    disabled={analyzeLoading}
+                                >
+                                    {analyzeLoading ? (
+                                        <span>
                                         <Spinner
                                             as="span"
                                             animation="border"
@@ -380,10 +376,10 @@ export default function Task() {
                                         />
                                         Analyzing...
                                     </span>
-                                ) : (
-                                    "Analyze with AI"
-                                )}
-                            </Button>
+                                    ) : (
+                                        "Analyze with AI"
+                                    )}
+                                </Button>
                             </Col>
                         </Row>
                         {/* Filters */}
@@ -451,95 +447,97 @@ export default function Task() {
 
                 </Col>
                 <Col xs={12} sm={12} md={6} lg={7} className="mb-4 tasks-list">
-                {loading ? (
-                    <div className="d-flex justify-content-center align-items-center h-100">
-                        <h3>Loading...</h3>
-                    </div>
-                ) : error ? (
-                    <div className="d-flex justify-content-center align-items-center h-100">
-                        <Alert>{error}</Alert>
-                    </div>
-                ) : (
-                    <Row>
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <Col
-                                    xs={12}
-                                    sm={12}
-                                    md={12}
-                                    lg={12}
-                                    key={task._id}
-                                    className="mb-4 d-flex justify-content-center"
-                                >
-                                    <Card style={{ width: "100%" }}>
-                                        <Card.Body>
-                                            <Card.Title className="d-flex justify-content-between align-items-center">
-                                                <span>{task.title}</span>
-                                                <div>
-                                                    <Badge
-                                                        bg={
-                                                            task.priority === "High"
-                                                                ? "danger"
-                                                                : task.priority === "Medium"
-                                                                    ? "warning"
-                                                                    : "secondary"
-                                                        }
-                                                        className="me-2"
-                                                    >
-                                                        {task.priority}
-                                                    </Badge>
-                                                    <Badge
-                                                        bg={
-                                                            task.status === "Todo"
-                                                                ? "warning"
-                                                                : task.status === "In Progress"
-                                                                    ? "primary"
-                                                                    : task.status === "Completed"
-                                                                        ? "success"
+                    {loading ? (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            <h3>Loading...</h3>
+                        </div>
+                    ) : error ? (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                            <Alert>{error}</Alert>
+                        </div>
+                    ) : (
+                        <Row>
+                            {tasks.length > 0 ? (
+                                tasks.map((task) => (
+                                    <Col
+                                        xs={12}
+                                        sm={12}
+                                        md={12}
+                                        lg={12}
+                                        key={task._id}
+                                        className="mb-4 d-flex justify-content-center"
+                                    >
+                                        <Card style={{width: "100%"}}>
+                                            <Card.Body>
+                                                <Card.Title
+                                                    className="d-flex justify-content-between align-items-center">
+                                                    <span>{task.title}</span>
+                                                    <div>
+                                                        <Badge
+                                                            bg={
+                                                                task.priority === "High"
+                                                                    ? "danger"
+                                                                    : task.priority === "Medium"
+                                                                        ? "warning"
                                                                         : "secondary"
-                                                        }
-                                                    >
-                                                        {task.status}
-                                                    </Badge>
-                                                </div>
-                                            </Card.Title>
-                                            <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
-                                            <Card.Text className="mb-0 fs-6 fw-lighter">
-                                                {formatDate(task.startTime)} - {formatDate(task.endTime)}
-                                            </Card.Text>
-                                            <Card.Text className="d-flex justify-content-between align-items-center">
+                                                            }
+                                                            className="me-2"
+                                                        >
+                                                            {task.priority}
+                                                        </Badge>
+                                                        <Badge
+                                                            bg={
+                                                                task.status === "Todo"
+                                                                    ? "warning"
+                                                                    : task.status === "In Progress"
+                                                                        ? "primary"
+                                                                        : task.status === "Completed"
+                                                                            ? "success"
+                                                                            : "secondary"
+                                                            }
+                                                        >
+                                                            {task.status}
+                                                        </Badge>
+                                                    </div>
+                                                </Card.Title>
+                                                <Card.Subtitle className="text-muted">{task.description}</Card.Subtitle>
+                                                <Card.Text className="mb-0 fs-6 fw-lighter">
+                                                    {formatDate(task.startTime)} - {formatDate(task.endTime)}
+                                                </Card.Text>
+                                                <Card.Text
+                                                    className="d-flex justify-content-between align-items-center">
                                                 <span>
                                                     Estimate Hours: {task.estimatedTime}
                                                 </span>
-                                                {/* Edit and Delete Buttons */}
-                                                <div>
-                                                    <Button
-                                                        variant="outline-dark"
-                                                        onClick={() => openEditModal(task)}
-                                                        className="border-0 me-2"
-                                                    >
-                                                        <FaEdit className="icon-button" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline-dark"
-                                                        onClick={() => openDeleteModal(task._id)}
-                                                        className="border-0 text-danger"
-                                                    >
-                                                        <FaTrashAlt className="icon-button" />
-                                                    </Button>
-                                                </div>
-                                            </Card.Text>
-                                        </Card.Body>
-                                    </Card>
+                                                    {/* Edit and Delete Buttons */}
+                                                    <div>
+                                                        <Button
+                                                            variant="outline-dark"
+                                                            onClick={() => openEditModal(task)}
+                                                            className="border-0 me-2"
+                                                        >
+                                                            <FaEdit className="icon-button"/>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline-dark"
+                                                            onClick={() => openDeleteModal(task._id)}
+                                                            className="border-0 text-danger"
+                                                        >
+                                                            <FaTrashAlt className="icon-button"/>
+                                                        </Button>
+                                                    </div>
+                                                </Card.Text>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                ))
+                            ) : (
+                                <Col xs={12} className="d-flex justify-content-center">
+                                    <p className="text-muted fs-5">No tasks found</p>
                                 </Col>
-                            ))
-                        ) : (
-                            <Col xs={12} className="d-flex justify-content-center">
-                                <p className="text-muted fs-5">No tasks found</p>
-                            </Col>
-                        )}
-                    </Row>
-                )}
+                            )}
+                        </Row>
+                    )}
                 </Col>
             </Row>
             {/* Modal for creating a new task */}
@@ -617,7 +615,8 @@ export default function Task() {
                                 dateFormat="Pp"
                                 className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
                             />
-                            {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
+                            {errors.endTime &&
+                                <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
 
                     </Form>
@@ -654,7 +653,7 @@ export default function Task() {
                                 placeholder="Enter task description"
                                 name="description"
                                 value={editingTask ? editingTask.description : ""}
-                                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                                onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
                             />
                         </Form.Group>
                         <Form.Group controlId="taskPriority" className="mt-2">
@@ -663,7 +662,7 @@ export default function Task() {
                                 as="select"
                                 name="priority"
                                 value={editingTask ? editingTask.priority : ""}
-                                onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                                onChange={(e) => setEditingTask({...editingTask, priority: e.target.value})}
                             >
                                 <option value="High">High</option>
                                 <option value="Medium">Medium</option>
@@ -686,30 +685,31 @@ export default function Task() {
                         </Form.Group>
                         <Form.Group controlId="taskStartTime" className="mt-2">
                             <Form.Label>Start Date & Time</Form.Label>
-                                <DatePicker
-                                    selected={editingTask ? editingTask.startTime : new Date()}
-                                    onChange={(date) => setEditingTask({ ...editingTask, startTime: date })}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                    className="form-control ms-2"
-                                />
+                            <DatePicker
+                                selected={editingTask ? editingTask.startTime : new Date()}
+                                onChange={(date) => setEditingTask({...editingTask, startTime: date})}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                className="form-control ms-2"
+                            />
                         </Form.Group>
 
                         <Form.Group controlId="taskEndTime" className="mt-2">
                             <Form.Label>End Date & Time</Form.Label>
-                                <DatePicker
-                                    selected={editingTask ? editingTask.endTime : new Date()}
-                                    onChange={(date) => setEditingTask({ ...editingTask, endTime: date })}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                    className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
-                                />
-                                {errors.endTime && <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
+                            <DatePicker
+                                selected={editingTask ? editingTask.endTime : new Date()}
+                                onChange={(date) => setEditingTask({...editingTask, endTime: date})}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                className={`form-control ms-3 ${errors.endTime ? "is-invalid" : ""}`}
+                            />
+                            {errors.endTime &&
+                                <div className="invalid-feedback" style={{display: "block"}}>{errors.endTime}</div>}
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant={editingTask?.status === "Completed" ? "warning" : "success"} 
+                    <Button variant={editingTask?.status === "Completed" ? "warning" : "success"}
                             onClick={handleMarkAsCompleted}>
                         {editingTask?.status === "Completed" ? "Mark as Incompleted" : "Mark as Completed"}
                     </Button>

@@ -55,13 +55,11 @@ export default function Signup() {
     const handleGoogleLogin = async () => {
         try {
             const token = await loginWithGoogle();
-            console.log("Google login successful, token:", token);
 
             // Call API after successful Google login
             await handleApiCall(token);
         } catch (err) {
             setError("Failed to login with Google.");
-            console.error("Google login error:", err);
         }
     };
 
@@ -73,11 +71,8 @@ export default function Signup() {
                 },
             });
 
-            console.log("API response:", res.data);
-
             if (res.data && res.data.User) {
                 const userData = res.data.User;
-                console.log('User data:', userData);
 
                 if (userData.should_update) {
                     navigate('/profile');

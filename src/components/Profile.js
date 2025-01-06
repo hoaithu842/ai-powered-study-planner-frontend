@@ -86,11 +86,8 @@ export default function Profile() {
 
     const handleLogout = () => {
         logout();
-        console.log("logout");
         navigate('/');
     }
-
-
 
     // Handle the form submission to update profile
     const handleUpdateProfile = async (e) => {
@@ -160,58 +157,59 @@ export default function Profile() {
             {success && <Alert variant="success">{success}</Alert>}
             <Row className="d-flex">
                 <Col xs={12} lg={4}>
-                {/* Avatar Section */}
-                <div className="text-center mb-4" style={{
-                    display: "flex",            // Enable Flexbox
-                    justifyContent: "center",   // Center horizontally
-                    alignItems: "center"        // Center vertically
-                }}>
-                    <img
-                        src={newAvatar || avatar || "https://via.placeholder.com/200"}
-                        alt="User Avatar"
-                        style={{
-                            width: "200px",               // Fixed size for square avatar
-                            height: "200px",              // Fixed size for square avatar
-                            borderRadius: "50%",          // Circular shape
-                            cursor: "pointer",           // Pointer cursor for click interaction
-                            objectFit: "cover",          // Ensure image covers the container
-                            objectPosition: "center",    // Center the image within the circle
-                        }}
-                        onClick={handleAvatarClick} // Open modal on click
-                    />
-                </div>
+                    {/* Avatar Section */}
+                    <div className="text-center mb-4" style={{
+                        display: "flex",            // Enable Flexbox
+                        justifyContent: "center",   // Center horizontally
+                        alignItems: "center"        // Center vertically
+                    }}>
+                        <img
+                            src={newAvatar || avatar || "https://via.placeholder.com/200"}
+                            alt="User Avatar"
+                            style={{
+                                width: "200px",               // Fixed size for square avatar
+                                height: "200px",              // Fixed size for square avatar
+                                borderRadius: "50%",          // Circular shape
+                                cursor: "pointer",           // Pointer cursor for click interaction
+                                objectFit: "cover",          // Ensure image covers the container
+                                objectPosition: "center",    // Center the image within the circle
+                            }}
+                            onClick={handleAvatarClick} // Open modal on click
+                        />
+                    </div>
                 </Col>
                 <Col xs={12} lg={6}>
-                <Form onSubmit={handleUpdateProfile}>
-                    <Form.Group id="name">
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
+                    <Form onSubmit={handleUpdateProfile}>
+                        <Form.Group id="name">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter Name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-                    <Form.Group id="email" className="mt-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            value={email}
-                            disabled
-                            readOnly
-                        />
-                    </Form.Group>
+                        <Form.Group id="email" className="mt-3">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                value={email}
+                                disabled
+                                readOnly
+                            />
+                        </Form.Group>
 
-                    <Button disabled={loading} className="w-100 mt-4" type="submit">
-                        Update Profile
-                    </Button>
-                </Form>
-                <div className="d-flex justify-content-end mt-5">
-                <Button variant="warning" className="me-3" onClick={handleChangePassword}>Change Password</Button>
-                <Button variant="danger" onClick={handleLogout}>Logout</Button>
-                </div>
+                        <Button disabled={loading} className="w-100 mt-4" type="submit">
+                            Update Profile
+                        </Button>
+                    </Form>
+                    <div className="d-flex justify-content-end mt-5">
+                        <Button variant="warning" className="me-3" onClick={handleChangePassword}>Change
+                            Password</Button>
+                        <Button variant="danger" onClick={handleLogout}>Logout</Button>
+                    </div>
                 </Col>
             </Row>
             {/* Modal for Avatar Upload */}

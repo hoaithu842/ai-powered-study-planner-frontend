@@ -51,12 +51,9 @@ export default function Login() {
                 },
             });
 
-            console.log("API response:", res.data); // Log the API response for debugging
-
             // Handle the response (user data) here
             if (res.data && res.data.User) {
                 const userData = res.data.User;
-                console.log('User data:', userData);
 
                 // Check if 'should_update' is true
                 if (userData.should_update) {
@@ -88,8 +85,6 @@ export default function Login() {
                 setLoading(false);
             } else {
                 const token = await user.getIdToken(); // Get the Firebase token
-                console.log("Token:", token); // Log token for debugging
-
                 await handleApiCall(token);
             }
         } catch (error) {
@@ -102,13 +97,11 @@ export default function Login() {
     const handleGoogleLogin = async () => {
         try {
             const token = await loginWithGoogle();
-            console.log("Google login successful, token:", token);
 
             // Make the API call using the token
             await handleApiCall(token);
         } catch (err) {
             setError("Failed to login with Google.");
-            console.error("Google login error:", err);
         }
     };
 
